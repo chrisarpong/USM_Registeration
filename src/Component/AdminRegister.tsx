@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'react-hot-toast'
 import { supabase } from '../supabaseClient'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -56,9 +57,11 @@ export default function AdminRegister() {
         setInvitee('')
     }
 
+
+
     const handleRegister = async () => {
-        if (!fullName.trim()) return alert('Please enter full name')
-        if (!phone.trim()) return alert('Please enter phone number')
+        if (!fullName.trim()) return toast.error('Please enter full name')
+        if (!phone.trim()) return toast.error('Please enter phone number')
 
         setLoading(true)
         const { error } = await supabase
@@ -76,8 +79,9 @@ export default function AdminRegister() {
         setLoading(false)
 
         if (error) {
-            alert('Error registering user: ' + error.message)
+            toast.error('Error registering user: ' + error.message)
         } else {
+            toast.success('User registered successfully!')
             setSuccess(true)
             resetForm()
             setTimeout(() => setSuccess(false), 3000)

@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
 import { useEffect, useState } from 'react'
 import { supabase } from './supabaseClient' // Fixed path: ./ not ../
 import Registration from './Component/Registration'
@@ -33,9 +34,17 @@ const ProtectedRoute = () => {
   return <Outlet />
 }
 
+
+
 function App() {
   return (
     <Router>
+      <Toaster position="top-right" toastOptions={{
+        style: {
+          background: '#333',
+          color: '#fff',
+        },
+      }} />
       <Routes>
         <Route path="/" element={<Registration />} />
         <Route path="/login" element={<AdminLogin />} />
