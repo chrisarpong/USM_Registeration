@@ -65,7 +65,7 @@ export default function AdminDashboard() {
         const { count: guestCount } = await supabase
             .from('attendance_logs')
             .select('*', { count: 'exact', head: true })
-            .in('status', ['Guest', 'First Timer'])
+            .in('status', ['Guest', 'First Timer']) // Count both as Guests
 
         setStats({
             total: totalCount || 0,
@@ -92,6 +92,7 @@ export default function AdminDashboard() {
                 // Update Stats
                 setStats(prev => {
                     const isMember = newLog.status === 'Member'
+                    // If not member, it counts as Guest (including First Timer)
                     return {
                         total: prev.total + 1,
                         members: isMember ? prev.members + 1 : prev.members,

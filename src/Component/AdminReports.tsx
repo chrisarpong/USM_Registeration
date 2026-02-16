@@ -121,7 +121,7 @@ export default function AdminReports() {
                                 >
                                     <option value="All">All Attendees</option>
                                     <option value="Members">Members Only</option>
-                                    <option value="Guests">Guests & First Timers</option>
+                                    <option value="Guests">Guests</option>
                                 </select>
                             </div>
                         </div>

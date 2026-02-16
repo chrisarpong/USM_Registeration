@@ -20,7 +20,7 @@ type Branch = {
     name: string
 }
 
-type Status = 'Member' | 'Guest' | 'First Timer'
+type Status = 'Member' | 'Guest'
 
 export default function Registration() {
     // Form state
@@ -37,8 +37,8 @@ export default function Registration() {
     const [success, setSuccess] = useState(false)
 
     // Conditional visibility
-    const showLocation = status === 'Member' || status === 'Guest' || status === 'First Timer'
-    const showInvitedBy = status === 'Guest' || status === 'First Timer'
+    const showLocation = status === 'Member' || status === 'Guest'
+    const showInvitedBy = status === 'Guest'
 
     // Fetch branches on mount
     useEffect(() => {
@@ -249,7 +249,6 @@ export default function Registration() {
                                 >
                                     <option value="Member">Member</option>
                                     <option value="Guest">Guest</option>
-                                    <option value="First Timer">First Timer</option>
                                 </select>
                             </div>
                         </div>
