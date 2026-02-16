@@ -375,6 +375,11 @@ export default function Registration() {
                         )}
                     </button>
                 </motion.div>
+
+                {/* Admin Link (Subtle) */}
+                <div style={{ marginTop: 'auto', paddingTop: '20px', textAlign: 'center' }}>
+                    <a href="/login" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.2)', textDecoration: 'none' }}>Admin Login</a>
+                </div>
             </div>
         </motion.div>
     )
