@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import {
@@ -17,7 +17,19 @@ export default function AdminLayout() {
     const navigate = useNavigate()
     const location = useLocation()
     const [searchTerm, setSearchTerm] = useState('')
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false) // For mobile
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768)
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
+
+    useEffect(() => {
+        // Close sidebar on route change (mobile)
+        if (isMobile) setIsSidebarOpen(false)
+    }, [location.pathname, isMobile])
 
     const handleLogout = async () => {
         await supabase.auth.signOut()
@@ -40,22 +52,48 @@ export default function AdminLayout() {
             overflow: 'hidden',
             background: '#0f0f1a' // Dark background behind glass
         }}>
+            {/* ─── MOBILE OVERLAY ─── */}
+            <AnimatePresence>
+                {isMobile && isSidebarOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setIsSidebarOpen(false)}
+                        style={{
+                            position: 'fixed',
+                            inset: 0,
+                            background: 'rgba(0,0,0,0.5)',
+                            backdropFilter: 'blur(4px)',
+                            zIndex: 40
+                        }}
+                    />
+                )}
+            </AnimatePresence>
+
             {/* ─── SIDEBAR ─── */}
             <motion.aside
-                className={`sidebar ${isSidebarOpen ? 'open' : ''}`}
-                initial={{ x: -100, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
+                className={`sidebar`}
+                initial={false}
+                animate={{
+                    x: isMobile ? (isSidebarOpen ? 0 : -280) : 0,
+                    opacity: 1
+                }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                 style={{
                     width: '260px',
                     height: '100%',
-                    background: 'rgba(20, 20, 35, 0.6)',
+                    background: 'rgba(20, 20, 35, 0.65)',
                     backdropFilter: 'blur(20px)',
                     borderRight: '1px solid rgba(255,255,255,0.08)',
                     display: 'flex',
                     flexDirection: 'column',
                     padding: '24px',
                     zIndex: 50,
-                    position: 'relative' // Mobile adjust needs conditional
+                    position: isMobile ? 'fixed' : 'relative',
+                    left: 0,
+                    top: 0,
+                    bottom: 0
                 }}
             >
                 {/* Logo */}
@@ -127,11 +165,26 @@ export default function AdminLayout() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: '0 32px',
+                    padding: isMobile ? '0 16px' : '0 32px',
                     background: 'rgba(20, 20, 35, 0.2)', // More transparent
                     backdropFilter: 'blur(10px)'
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        {isMobile && (
+                            <button
+                                onClick={() => setIsSidebarOpen(true)}
+                                style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    padding: '8px',
+                                    marginLeft: '-8px'
+                                }}
+                            >
+                                <Menu size={24} />
+                            </button>
+                        )}
                         <h1 style={{ fontSize: '20px', fontWeight: 600, color: 'white' }}>{pageTitle}</h1>
                     </div>
 

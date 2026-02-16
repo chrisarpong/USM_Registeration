@@ -323,20 +323,47 @@ select option {
   .registration-container {
     grid-template-columns: 1fr;
     max-height: none;
-    /* Allow scrolling on tablet/mobile */
     min-height: auto;
+    margin: 20px;
+    /* Add margin for mobile */
+    width: calc(100% - 40px);
+    /* Ensure it doesn't touch edges */
   }
 
   .info-panel {
-    min-height: 400px;
-    /* Give space for flyer */
+    min-height: 300px;
+    /* Reduce height for mobile */
+    padding: 24px;
+  }
+
+  .form-panel {
+    padding: 24px;
+    /* Reduce padding */
   }
 
   body {
     align-items: flex-start;
-    /* Top align on scroll */
-    padding-top: 40px;
-    padding-bottom: 40px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .registration-container {
+    margin: 10px;
+    width: calc(100% - 20px);
+  }
+
+  .form-panel {
+    padding: 20px;
+  }
+
+  .info-panel h2 {
+    font-size: 24px;
+  }
+
+  h2 {
+    font-size: 20px;
   }
 }
 
@@ -473,4 +500,56 @@ select option {
 
 .btn-icon:hover {
   background: rgba(255, 255, 255, 0.1);
+}
+
+/* ─── Mobile Responsiveness ─── */
+@media (max-width: 768px) {
+
+  /* Admin Layout */
+  .stats-grid {
+    grid-template-columns: 1fr;
+    /* Stack cards */
+    gap: 16px;
+  }
+
+  .stat-card {
+    padding: 16px;
+  }
+
+  .glass-table-container {
+    overflow-x: auto;
+    /* Enable horizontal scroll */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .glass-table th,
+  .glass-table td {
+    white-space: nowrap;
+    /* Prevent wrapping */
+    padding: 12px;
+    font-size: 13px;
+  }
+
+  /* Admin Register Form */
+  .registration-container {
+    padding: 16px;
+  }
+
+  .form-panel {
+    padding: 24px !important;
+  }
+
+  /* Topbar Adjustments */
+  header {
+    padding: 0 16px !important;
+    height: 64px !important;
+  }
+
+  .search-bar {
+    width: 40px !important;
+    /* Collapse search on mobile? or hide text */
+    /* For now, maybe hide search on very small screens or make it an icon expand */
+    display: none;
+    /* Temporarily hide global search on mobile to save space, or implement expand */
+  }
 }
