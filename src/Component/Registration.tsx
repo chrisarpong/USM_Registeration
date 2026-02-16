@@ -86,6 +86,24 @@ export default function Registration() {
 
         setLoading(true)
 
+        // Check for existing registration with this phone number
+        const { data: existingUser, error: checkError } = await supabase
+            .from('attendance_logs')
+            .select('id')
+            .eq('phone_number', phone.trim())
+            .maybeSingle()
+
+        if (checkError) {
+            setLoading(false)
+            console.error('Check error:', checkError)
+            return toast.error('Error checking registration status')
+        }
+
+        if (existingUser) {
+            setLoading(false)
+            return toast.error('This phone number is already registered!')
+        }
+
         const { error } = await supabase
             .from('attendance_logs')
             .insert([

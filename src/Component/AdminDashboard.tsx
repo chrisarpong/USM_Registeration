@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
 import { useOutletContext } from 'react-router-dom' // Import context hook
 import { motion } from 'framer-motion'
-import { Users, UserCheck, UserPlus, RefreshCw } from 'lucide-react'
+import { Users, UserCheck, UserPlus, RefreshCw, Edit2, Trash2 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
+import EditGuestModal from './EditGuestModal'
+import RegistrationChart from './RegistrationChart'
 
 // Types for our data
 type Log = {
@@ -31,49 +33,71 @@ export default function AdminDashboard() {
     const [branchFilter, setBranchFilter] = useState('') // Local filter
     const [branches, setBranches] = useState<string[]>([])
 
+    // Edit Modal State
+    const [editingLog, setEditingLog] = useState<Log | null>(null)
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+
+    // Pagination State
+    const [page, setPage] = useState(0)
+    const [hasMore, setHasMore] = useState(true)
+    const ITEMS_PER_PAGE = 50
+
     // Fetch Initial Data
-    const fetchData = async () => {
-        setLoading(true)
+    const fetchData = async (pageNumber = 0) => {
+        if (pageNumber === 0) setLoading(true)
 
-        // Fetch Branches for filter
-        const { data: branchData } = await supabase.from('branches').select('name')
-        if (branchData) setBranches(branchData.map(b => b.name))
+        // Fetch Branches for filter (only once)
+        if (pageNumber === 0) {
+            const { data: branchData } = await supabase.from('branches').select('name')
+            if (branchData) setBranches(branchData.map(b => b.name))
+        }
 
-        // 1. Fetch Logs (Last 100)
+        // 1. Fetch Logs
+        const start = pageNumber * ITEMS_PER_PAGE
+        const end = start + ITEMS_PER_PAGE - 1
+
         const { data: logsData, error: logsError } = await supabase
             .from('attendance_logs')
             .select('*')
             .order('created_at', { ascending: false })
-            .limit(100)
+            .range(start, end)
 
-        if (logsError) console.error('Error fetching logs:', logsError)
-        else setLogs(logsData || [])
+        if (logsError) {
+            console.error('Error fetching logs:', logsError)
+        } else {
+            if (logsData) {
+                if (pageNumber === 0) {
+                    setLogs(logsData)
+                } else {
+                    setLogs(prev => [...prev, ...logsData])
+                }
 
-        // 2. Fetch Stats (Counts)
-        // Get all logs count
-        const { count: totalCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true })
+                if (logsData.length < ITEMS_PER_PAGE) {
+                    setHasMore(false)
+                } else {
+                    setHasMore(true)
+                }
+            }
+        }
 
-        const { count: memberCount } = await supabase
-            .from('attendance_logs')
-            .select('*', { count: 'exact', head: true })
-            .eq('status', 'Member')
+        // 2. Fetch Stats (Counts) - Only on first load to save resources
+        if (pageNumber === 0) {
+            const { count: totalCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true })
+            const { count: memberCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true }).eq('status', 'Member')
+            const { count: guestCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true }).in('status', ['Guest', 'First Timer'])
 
-        const { count: guestCount } = await supabase
-            .from('attendance_logs')
-            .select('*', { count: 'exact', head: true })
-            .in('status', ['Guest', 'First Timer']) // Count both as Guests
-
-        setStats({
-            total: totalCount || 0,
-            members: memberCount || 0,
-            guests: guestCount || 0
-        })
+            setStats({
+                total: totalCount || 0,
+                members: memberCount || 0,
+                guests: guestCount || 0
+            })
+        }
 
         setLoading(false)
     }
 
     useEffect(() => {
-        fetchData()
+        fetchData(0)
 
         // Real-time Subscription
         const channel = supabase
@@ -106,15 +130,35 @@ export default function AdminDashboard() {
             )
             .subscribe((status) => {
                 console.log('SUBSCRIPTION STATUS:', status)
-                if (status === 'SUBSCRIBED') {
-                    // console.log('Subscribed to realtime events')
-                }
             })
 
         return () => {
             supabase.removeChannel(channel)
         }
     }, [])
+
+    const handleDelete = async (id: number) => {
+        if (!confirm('Are you sure you want to delete this record?')) return
+
+        const { error } = await supabase
+            .from('attendance_logs')
+            .delete()
+            .eq('id', id)
+
+        if (error) {
+            toast.error('Failed to delete')
+        } else {
+            toast.success('Record deleted')
+            setLogs(prev => prev.filter(l => l.id !== id))
+            // Update stats vaguely or refetch
+            fetchData(0)
+        }
+    }
+
+    const openEditModal = (log: Log) => {
+        setEditingLog(log)
+        setIsEditModalOpen(true)
+    }
 
     const filteredLogs = logs.filter(log => {
         const matchesSearch =
@@ -158,6 +202,9 @@ export default function AdminDashboard() {
                 </div>
             </div>
 
+            {/* Registration Chart */}
+            <RegistrationChart />
+
             {/* Filter Bar */}
             <div style={{ marginBottom: '24px', display: 'flex', gap: '16px', alignItems: 'center' }}>
                 <select
@@ -182,7 +229,7 @@ export default function AdminDashboard() {
                     Showing {filteredLogs.length} records
                 </div>
 
-                <button className="btn-icon" onClick={fetchData} title="Refresh">
+                <button className="btn-icon" onClick={() => fetchData(0)} title="Refresh">
                     <RefreshCw size={18} color="white" />
                 </button>
             </div>
@@ -198,13 +245,14 @@ export default function AdminDashboard() {
                             <th>Branch</th>
                             <th>Phone</th>
                             <th>Invited By</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {loading ? (
-                            <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px' }}>Loading...</td></tr>
+                        {loading && page === 0 ? (
+                            <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px' }}>Loading...</td></tr>
                         ) : filteredLogs.length === 0 ? (
-                            <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px' }}>No records found matching "{searchTerm}"</td></tr>
+                            <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px' }}>No records found matching "{searchTerm}"</td></tr>
                         ) : (
                             filteredLogs.map(log => (
                                 <tr key={log.id}>
@@ -220,12 +268,64 @@ export default function AdminDashboard() {
                                     <td>{log.branch}</td>
                                     <td>{log.phone_number}</td>
                                     <td style={{ color: 'rgba(255,255,255,0.6)' }}>{log.invited_by || '-'}</td>
+                                    <td>
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <button
+                                                onClick={() => openEditModal(log)}
+                                                className="btn-icon"
+                                                title="Edit"
+                                                style={{ padding: '6px' }}
+                                            >
+                                                <Edit2 size={16} color="#60a5fa" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(log.id)}
+                                                className="btn-icon"
+                                                title="Delete"
+                                                style={{ padding: '6px' }}
+                                            >
+                                                <Trash2 size={16} color="#ef4444" />
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
                             ))
                         )}
                     </tbody>
                 </table>
             </div>
+
+            {/* Load More Button */}
+            {hasMore && !loading && filteredLogs.length > 0 && (
+                <div style={{ textAlign: 'center', marginTop: '20px', marginBottom: '40px' }}>
+                    <button
+                        onClick={() => {
+                            const nextPage = page + 1
+                            setPage(nextPage)
+                            fetchData(nextPage)
+                        }}
+                        style={{
+                            padding: '10px 24px',
+                            background: 'rgba(255,255,255,0.1)',
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            borderRadius: '8px',
+                            color: 'white',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: 500
+                        }}
+                    >
+                        Load More Records
+                    </button>
+                </div>
+            )}
+
+            <EditGuestModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                log={editingLog}
+                onUpdate={() => fetchData(0)}
+            />
         </motion.div>
     )
 }

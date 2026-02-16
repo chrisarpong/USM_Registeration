@@ -64,6 +64,23 @@ export default function AdminRegister() {
         if (!phone.trim()) return toast.error('Please enter phone number')
 
         setLoading(true)
+        // Check for existing registration
+        const { data: existingUser, error: checkError } = await supabase
+            .from('attendance_logs')
+            .select('id')
+            .eq('phone_number', phone.trim())
+            .maybeSingle()
+
+        if (checkError) {
+            setLoading(false)
+            return toast.error('Error checking registration')
+        }
+
+        if (existingUser) {
+            setLoading(false)
+            return toast.error('Phone number already registered!')
+        }
+
         const { error } = await supabase
             .from('attendance_logs')
             .insert([
