@@ -12,6 +12,7 @@ import {
     Building2,
     UserPlus,
     ChevronRight,
+    Mail,
 } from 'lucide-react'
 
 import flyerImage from '../assets/USM.jpeg'
@@ -28,6 +29,7 @@ export default function Registration() {
     const [status, setStatus] = useState<Status>('Member')
     const [phone, setPhone] = useState('')
     const [fullName, setFullName] = useState('')
+    const [email, setEmail] = useState('')
     const [branch, setBranch] = useState('')
     const [location, setLocation] = useState('')
     const [invitee, setInvitee] = useState('')
@@ -72,6 +74,7 @@ export default function Registration() {
         setStatus('Member')
         setPhone('')
         setFullName('')
+        setEmail('')
         setBranch(branches.length > 0 ? branches[0].name : '')
         setLocation('')
         setInvitee('')
@@ -82,6 +85,10 @@ export default function Registration() {
     const handleRegister = async () => {
         if (!fullName.trim()) return toast.error('Please enter your full name')
         if (!phone.trim()) return toast.error('Please enter your phone number')
+        // Email is optional? User said "Confirmation message". Best to make it required if we promised it.
+        // But let's make it optional to not block registration if they don't have one?
+        // User request: "Send a message automatically". Implies required.
+        if (!email.trim()) return toast.error('Please enter your email address')
         if (!branch) return toast.error('Please select a branch')
 
         setLoading(true)
@@ -110,6 +117,7 @@ export default function Registration() {
                 {
                     full_name: fullName.trim(),
                     phone_number: phone.trim(),
+                    email: email.trim(),
                     status: status,
                     branch: branch,
                     location: showLocation ? location.trim() || null : null,
@@ -124,6 +132,16 @@ export default function Registration() {
             toast.error('Something went wrong. Please try again.')
             return
         }
+
+        // Trigger Email Notification
+        fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: fullName.trim(),
+                email: email.trim()
+            })
+        }).catch(err => console.error('Failed to send email:', err))
 
         toast.success('Registration successful! See you soon! 🎉', { duration: 5000 })
         resetForm()
@@ -284,6 +302,20 @@ export default function Registration() {
                                 placeholder="Enter your full name"
                                 value={fullName}
                                 onChange={(e) => setFullName(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Email */}
+                    <div className="form-group">
+                        <label>Email Address</label>
+                        <div className="input-wrapper">
+                            <Mail size={18} className="input-icon" />
+                            <input
+                                type="email"
+                                placeholder="Enter your email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                             />
                         </div>
                     </div>

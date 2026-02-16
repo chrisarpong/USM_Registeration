@@ -9,7 +9,8 @@ import {
     MapPin,
     UserPlus,
     ChevronRight,
-    CheckCircle
+    CheckCircle,
+    Mail
 } from 'lucide-react'
 
 type Branch = {
@@ -24,6 +25,7 @@ export default function AdminRegister() {
     const [status, setStatus] = useState<Status>('Member')
     const [phone, setPhone] = useState('')
     const [fullName, setFullName] = useState('')
+    const [email, setEmail] = useState('')
     const [branch, setBranch] = useState('')
     const [location, setLocation] = useState('')
     const [invitee, setInvitee] = useState('')
@@ -52,6 +54,7 @@ export default function AdminRegister() {
         setStatus('Member')
         setPhone('')
         setFullName('')
+        setEmail('')
         setBranch(branches.length > 0 ? branches[0].name : '')
         setLocation('')
         setInvitee('')
@@ -62,6 +65,9 @@ export default function AdminRegister() {
     const handleRegister = async () => {
         if (!fullName.trim()) return toast.error('Please enter full name')
         if (!phone.trim()) return toast.error('Please enter phone number')
+        // Email optional for admin manual entry? 
+        // Let's make it optional but recommended.
+        // If email is provided, validate it?
 
         setLoading(true)
         // Check for existing registration
@@ -87,6 +93,7 @@ export default function AdminRegister() {
                 {
                     full_name: fullName.trim(),
                     phone_number: phone.trim(),
+                    email: email.trim() || null,
                     status: status,
                     branch: branch,
                     location: showLocation ? location.trim() || null : null,
@@ -94,6 +101,18 @@ export default function AdminRegister() {
                 }
             ])
         setLoading(false)
+
+        // Trigger Email Notification if email is provided
+        if (email.trim() && !error) {
+            fetch('/api/send-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: fullName.trim(),
+                    email: email.trim()
+                })
+            }).catch(err => console.error('Failed to send email:', err))
+        }
 
         if (error) {
             toast.error('Error registering user: ' + error.message)
@@ -184,6 +203,20 @@ export default function AdminRegister() {
                                 placeholder="Enter full name"
                                 value={fullName}
                                 onChange={(e) => setFullName(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Email */}
+                    <div className="form-group">
+                        <label>Email Address</label>
+                        <div className="input-wrapper">
+                            <Mail size={18} className="input-icon" />
+                            <input
+                                type="email"
+                                placeholder="Enter email (optional)"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                             />
                         </div>
                     </div>
