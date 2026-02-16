@@ -13,8 +13,7 @@ import {
     ChevronRight,
 } from 'lucide-react'
 
-// Placeholder for the flyer image - user should replace this in src/assets
-// import flyerImage from '../assets/poster.jpg' 
+import flyerImage from '../assets/USM.jpeg'
 
 type Branch = {
     id: string
@@ -126,12 +125,7 @@ export default function Registration() {
                     <div style={{
                         position: 'absolute',
                         inset: 0,
-                        /* 
-                           TODO: REPLACE THE PLACEHOLDER BELOW WITH YOUR ACTUAL FLYER IMAGE
-                           1. Save your image to: src/assets/flyer.jpg
-                           2. Update the url below to: url('/src/assets/flyer.jpg')
-                        */
-                        backgroundImage: `url('/src/assets/USM.jpeg')`,
+                        backgroundImage: `url(${flyerImage})`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                     }} />
