@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Save, Trash2, User, Phone, Building2, UserPlus } from 'lucide-react'
+import { X, Save, User, Phone, UserPlus } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 import { toast } from 'react-hot-toast'
 
