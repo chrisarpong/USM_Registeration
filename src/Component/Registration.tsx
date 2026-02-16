@@ -35,7 +35,6 @@ export default function Registration() {
     // UI state
     const [branches, setBranches] = useState<Branch[]>([])
     const [loading, setLoading] = useState(false)
-    const [success, setSuccess] = useState(false)
 
     // Conditional visibility
     const showLocation = status === 'Member' || status === 'Guest'
@@ -109,9 +108,7 @@ export default function Registration() {
         }
 
         toast.success('Registration successful! See you soon! 🎉', { duration: 5000 })
-        setSuccess(true)
         resetForm()
-        setTimeout(() => setSuccess(false), 5000)
     }
 
     return (
@@ -227,19 +224,7 @@ export default function Registration() {
                     <h2>Register Now</h2>
                     <p className="form-subtitle">Fill in your details to confirm attendance</p>
 
-                    {/* Success Message */}
-                    <AnimatePresence>
-                        {success && (
-                            <motion.div
-                                className="success-message"
-                                initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                            >
-                                🎉 See you on Saturday!
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                    {/* Success Message removed (handled by Toast) */}
 
                     {/* Status & Phone */}
                     <div className="form-row">

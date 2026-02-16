@@ -38,28 +38,25 @@ const ProtectedRoute = () => {
 
 function App() {
   return (
-    <Router>
-      <Toaster position="top-right" toastOptions={{
-        style: {
-          background: '#333',
-          color: '#fff',
-        },
-      }} />
-      <Routes>
-        <Route path="/" element={<Registration />} />
-        <Route path="/login" element={<AdminLogin />} />
+    <>
+      <Toaster position="top-right" />
+      <Router>
+        <Routes>
+          <Route path="/" element={<Registration />} />
+          <Route path="/login" element={<AdminLogin />} />
 
-        {/* Protected Admin Routes */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="register" element={<AdminRegister />} />
-            <Route path="reports" element={<AdminReports />} />
+          {/* Protected Admin Routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="register" element={<AdminRegister />} />
+              <Route path="reports" element={<AdminReports />} />
+            </Route>
           </Route>
-        </Route>
 
-      </Routes>
-    </Router>
+        </Routes>
+      </Router>
+    </>
   )
 }
 

@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient'
 import { useOutletContext } from 'react-router-dom' // Import context hook
 import { motion } from 'framer-motion'
 import { Users, UserCheck, UserPlus, RefreshCw } from 'lucide-react'
+import { toast } from 'react-hot-toast'
 
 // Types for our data
 type Log = {
@@ -49,11 +50,6 @@ export default function AdminDashboard() {
         else setLogs(logsData || [])
 
         // 2. Fetch Stats (Counts)
-        // Note: For large datasets, use count() query. For now, we calculate from all logs? 
-        // No, we should run specific count queries for accuracy if the table is large.
-        // Let's assume table isn't huge yet, or we assume "Current Month" stats? 
-        // User asked for "Total Registered", "Members", "Guests".
-
         // Get all logs count
         const { count: totalCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true })
 
@@ -80,30 +76,43 @@ export default function AdminDashboard() {
         fetchData()
 
         // Real-time Subscription
-        const subscription = supabase
+        const channel = supabase
             .channel('public:attendance_logs')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'attendance_logs' }, (payload) => {
-                console.log('New log received!', payload)
-                const newLog = payload.new as Log
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'attendance_logs' },
+                (payload) => {
+                    console.log('REALTIME EVENT:', payload)
+                    const newLog = payload.new as Log
 
-                // Update Logs List
-                setLogs(prev => [newLog, ...prev])
+                    // Toast Notification
+                    toast.success(`New Registration: ${newLog.full_name}`, {
+                        id: `registration-${newLog.id}`, // Prevent duplicates
+                        duration: 5000,
+                        icon: '🔔'
+                    })
 
-                // Update Stats
-                setStats(prev => {
-                    const isMember = newLog.status === 'Member'
-                    // If not member, it counts as Guest (including First Timer)
-                    return {
-                        total: prev.total + 1,
-                        members: isMember ? prev.members + 1 : prev.members,
-                        guests: !isMember ? prev.guests + 1 : prev.guests
-                    }
-                })
+                    setLogs(prev => [newLog, ...prev])
+
+                    setStats(prev => {
+                        const isMember = newLog.status === 'Member'
+                        return {
+                            total: prev.total + 1,
+                            members: isMember ? prev.members + 1 : prev.members,
+                            guests: !isMember ? prev.guests + 1 : prev.guests
+                        }
+                    })
+                }
+            )
+            .subscribe((status) => {
+                console.log('SUBSCRIPTION STATUS:', status)
+                if (status === 'SUBSCRIBED') {
+                    // console.log('Subscribed to realtime events')
+                }
             })
-            .subscribe()
 
         return () => {
-            supabase.removeChannel(subscription)
+            supabase.removeChannel(channel)
         }
     }, [])
 
