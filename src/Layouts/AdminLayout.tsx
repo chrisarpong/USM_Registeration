@@ -8,8 +8,7 @@ import {
     LogOut,
     Search,
     Bell,
-    Menu,
-    X
+    Menu
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 

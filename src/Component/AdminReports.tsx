@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FileDown, Calendar, Filter, ChevronRight, CheckCircle } from 'lucide-react'
+import { FileDown, Calendar, Filter } from 'lucide-react'
 
 export default function AdminReports() {
     const [startDate, setStartDate] = useState('')
