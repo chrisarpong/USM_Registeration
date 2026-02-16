@@ -1,0 +1,341 @@
+/*
+ * ============================================================
+ *  USM EVENT REGISTRATION — PREMIUM STYLESHEET (updated)
+ * ============================================================
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  /* ─── Color Palette ─── */
+  --primary: #7c5dfa;
+  --primary-light: #a78bfa;
+  --primary-glow: rgba(124, 93, 250, 0.4);
+  --accent: #38bdf8;
+  --accent-glow: rgba(56, 189, 248, 0.3);
+  --success: #34d399;
+  --success-bg: rgba(52, 211, 153, 0.12);
+  --success-border: rgba(52, 211, 153, 0.3);
+
+  /* ─── Glass ─── */
+  --glass-bg: rgba(20, 20, 35, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-hover: rgba(255, 255, 255, 0.04);
+
+  /* ─── Text ─── */
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.45);
+
+  /* ─── Spacing ─── */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+  color-scheme: dark;
+  color: var(--text-primary);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  /* Background is handled by ::before and ::after for layering */
+  overflow-x: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 1. Background Image Layer (Visible but blurry) */
+body::before {
+  content: '';
+  position: fixed;
+  inset: -10px;
+  /* Slight overflow to hide blur edges */
+  background-image: url('/src/assets/14.JPEG');
+  background-size: cover;
+  background-position: center;
+  filter: blur(6px);
+  /* Blur the image itself */
+  z-index: -2;
+}
+
+/* 2. Light Overlay (Reduced darkness to let image show) */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+  /* Much lighter overlay */
+  z-index: -1;
+}
+
+/* ─── Main Container (High Transparency Glass) ─── */
+.registration-container {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  max-width: 1200px;
+  /* Widened from 1100px */
+  width: 95%;
+  /* Responsive width */
+  min-height: 700px;
+  /* Slightly taller minimum */
+  /* Removed max-height: 90vh to prevent clipping of map/buttons on smaller screens */
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  /* Keeps glass corners, but container can now grow */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  /* Crisper border */
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    0 24px 80px -12px rgba(0, 0, 0, 0.5);
+  /* More transparent to see background through */
+  background: rgba(20, 20, 40, 0.25);
+  backdrop-filter: blur(16px);
+  /* Moderate blur to see shapes behind */
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* ─── Left Panel: Flyer / Event Info ─── */
+.info-panel {
+  position: relative;
+  overflow: hidden;
+  /* Lighter gradient to show background through the glass info area */
+  background: linear-gradient(to bottom,
+      rgba(20, 20, 35, 0.1) 0%,
+      rgba(20, 20, 35, 0.6) 60%,
+      rgba(15, 15, 25, 0.8) 100%);
+}
+
+.event-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  width: fit-content;
+  margin-bottom: 24px;
+  backdrop-filter: blur(10px);
+}
+
+.info-panel h1 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -1.5px;
+  margin-bottom: 24px;
+  color: white;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.info-panel .subtitle {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  margin-bottom: 32px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+}
+
+.info-detail {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info-detail:last-child {
+  border-bottom: none;
+}
+
+.info-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: white;
+  backdrop-filter: blur(5px);
+}
+
+.info-detail-text h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 2px;
+}
+
+.info-detail-text p {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ─── Right Panel: Form ─── */
+.form-panel {
+  /* Much more transparent to blend with parent glass, slightly stronger backdrop filter override if needed */
+  background: rgba(30, 30, 45, 0.25);
+  backdrop-filter: none;
+  /* Inherit blur from parent container */
+  -webkit-backdrop-filter: none;
+  padding: 44px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.form-panel h2 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: white;
+}
+
+.form-panel .form-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 32px;
+}
+
+/* ─── Form Inputs (Refined) ─── */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  letter-spacing: 0.3px;
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+.input-wrapper .input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+  width: 18px;
+  height: 18px;
+  transition: color 0.3s;
+}
+
+.input-wrapper:focus-within .input-icon {
+  color: var(--primary-light);
+}
+
+input,
+select {
+  width: 100%;
+  padding: 14px 14px 14px 44px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+  color: white;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  outline: none;
+  transition: all 0.25s ease;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--primary);
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 0 3px rgba(124, 93, 250, 0.15);
+}
+
+select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+
+select option {
+  background: #1a1a2e;
+  color: white;
+}
+
+/* ─── Submit Button (Refined) ─── */
+.btn-submit {
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border: none;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  color: white;
+  background: linear-gradient(135deg, var(--primary) 0%, #5b21b6 100%);
+  box-shadow:
+    0 10px 30px -10px rgba(124, 93, 250, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  margin-top: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow:
+    0 15px 35px -10px rgba(124, 93, 250, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.btn-submit:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 900px) {
+  .registration-container {
+    grid-template-columns: 1fr;
+    max-height: none;
+    /* Allow scrolling on tablet/mobile */
+    min-height: auto;
+  }
+
+  .info-panel {
+    min-height: 400px;
+    /* Give space for flyer */
+  }
+
+  body {
+    align-items: flex-start;
+    /* Top align on scroll */
+    padding-top: 40px;
+    padding-bottom: 40px;
+  }
+}
