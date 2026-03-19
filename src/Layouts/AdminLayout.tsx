@@ -16,8 +16,8 @@ export default function AdminLayout() {
     const navigate = useNavigate()
     const location = useLocation()
     const [searchTerm, setSearchTerm] = useState('')
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+    const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 768)
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 768)
@@ -27,7 +27,9 @@ export default function AdminLayout() {
 
     useEffect(() => {
         // Close sidebar on route change (mobile)
-        if (isMobile) setIsSidebarOpen(false)
+        if (isMobile) {
+            setTimeout(() => setIsSidebarOpen(false), 0)
+        }
     }, [location.pathname, isMobile])
 
     const handleLogout = async () => {
@@ -76,23 +78,25 @@ export default function AdminLayout() {
                 initial={false}
                 animate={{
                     x: isMobile ? (isSidebarOpen ? 0 : -280) : 0,
-                    opacity: 1
+                    width: isMobile ? 260 : (isSidebarOpen ? 260 : 0),
+                    opacity: isMobile ? 1 : (isSidebarOpen ? 1 : 0),
+                    padding: isSidebarOpen ? '24px' : '24px 0px'
                 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                 style={{
-                    width: '260px',
                     height: '100%',
                     background: 'rgba(20, 20, 35, 0.65)',
                     backdropFilter: 'blur(20px)',
                     borderRight: '1px solid rgba(255,255,255,0.08)',
                     display: 'flex',
                     flexDirection: 'column',
-                    padding: '24px',
                     zIndex: 50,
                     position: isMobile ? 'fixed' : 'relative',
                     left: 0,
                     top: 0,
-                    bottom: 0
+                    bottom: 0,
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap'
                 }}
             >
                 {/* Logo */}
@@ -169,21 +173,23 @@ export default function AdminLayout() {
                     backdropFilter: 'blur(10px)'
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                        {isMobile && (
-                            <button
-                                onClick={() => setIsSidebarOpen(true)}
-                                style={{
-                                    background: 'transparent',
-                                    border: 'none',
-                                    color: 'white',
-                                    cursor: 'pointer',
-                                    padding: '8px',
-                                    marginLeft: '-8px'
-                                }}
-                            >
-                                <Menu size={24} />
-                            </button>
-                        )}
+                        <button
+                            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: 'white',
+                                cursor: 'pointer',
+                                padding: '8px',
+                                marginLeft: '-8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                transition: 'transform 0.2s',
+                                transform: isSidebarOpen && isMobile ? 'rotate(90deg)' : 'rotate(0deg)'
+                            }}
+                        >
+                            <Menu size={24} />
+                        </button>
                         <h1 style={{ fontSize: '20px', fontWeight: 600, color: 'white' }}>{pageTitle}</h1>
                     </div>
 
