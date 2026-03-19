@@ -29,8 +29,9 @@ export default async function handler(request: Request) {
             <p>We are thrilled to confirm your registration for the <strong>Unending Spirit Meeting (USM)</strong>.</p>
             
             <div style="background: #f4f4f5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4f46e5;">
-                <p style="margin: 5px 0;"><strong>📅 Date:</strong> 21st February</p>
-                <p style="margin: 5px 0;"><strong>⏰ Time:</strong> 9:00 AM</p>
+                <p style="margin: 5px 0;"><strong>📅 Date:</strong> 28th March</p>
+                <p style="margin: 5px 0;"><strong>⏰ Time:</strong> 10:00 AM</p>
+                <p style="margin: 5px 0;"><strong>🏷️ Theme:</strong> Gift of Healing</p>
                 <p style="margin: 5px 0;"><strong>📍 Location:</strong> 3rd floor ORA black star building, Opposite Ofankor Shell filling station</p>
             </div>
 

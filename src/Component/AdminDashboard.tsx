@@ -379,27 +379,30 @@ export default function AdminDashboard() {
                                     <td>{log.phone_number}</td>
                                     <td style={{ color: 'rgba(255,255,255,0.6)' }}>{log.invited_by || '-'}</td>
                                     <td style={{ textAlign: 'center' }}>
-                                        <button 
+                                        <motion.button 
+                                            whileHover={{ scale: 1.05, boxShadow: log.checked_in ? '0 4px 15px rgba(16, 185, 129, 0.2)' : '0 4px 15px rgba(255,255,255,0.1)' }}
+                                            whileTap={{ scale: 0.95 }}
                                             onClick={() => handleCheckIn(log.id, log.checked_in)}
                                             style={{
-                                                background: log.checked_in ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.05)',
-                                                border: log.checked_in ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(255,255,255,0.1)',
-                                                color: log.checked_in ? '#10b981' : 'gray',
-                                                padding: '6px 12px',
-                                                borderRadius: '20px',
+                                                background: log.checked_in ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05))' : 'rgba(255,255,255,0.03)',
+                                                border: log.checked_in ? '1px solid rgba(16, 185, 129, 0.5)' : '1px solid rgba(255,255,255,0.1)',
+                                                color: log.checked_in ? '#34d399' : '#9ca3af',
+                                                padding: '8px 16px',
+                                                borderRadius: '24px',
                                                 cursor: 'pointer',
                                                 display: 'flex',
                                                 alignItems: 'center',
-                                                gap: '6px',
+                                                gap: '8px',
                                                 margin: '0 auto',
-                                                transition: 'all 0.2s',
-                                                fontSize: '12px',
-                                                fontWeight: 600
+                                                transition: 'background 0.3s ease, border 0.3s ease, color 0.3s ease',
+                                                fontSize: '13px',
+                                                fontWeight: 600,
+                                                textShadow: log.checked_in ? '0 2px 4px rgba(0,0,0,0.3)' : 'none'
                                             }}
                                         >
-                                            {log.checked_in ? <CheckCircle size={14} /> : <XCircle size={14} />}
+                                            {log.checked_in ? <CheckCircle size={16} strokeWidth={2.5} /> : <XCircle size={16} strokeWidth={2} />}
                                             {log.checked_in ? 'Checked In' : 'Pending'}
-                                        </button>
+                                        </motion.button>
                                     </td>
                                     <td>
                                         {confirmDeleteId === log.id ? (

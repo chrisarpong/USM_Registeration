@@ -406,11 +406,22 @@ export default function Registration() {
                         )}
                     </AnimatePresence>
 
-                    {/* Submit */}
-                    <button
+                    <motion.button
+                        whileHover={!loading ? { scale: 1.02, boxShadow: '0 12px 40px rgba(99, 102, 241, 0.6)' } : {}}
+                        whileTap={!loading ? { scale: 0.98 } : {}}
                         className="btn-submit"
                         onClick={handleRegister}
                         disabled={loading}
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            gap: '8px',
+                            background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%)',
+                            boxShadow: '0 8px 32px rgba(99, 102, 241, 0.4)',
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                        }}
                     >
                         {loading ? (
                             <>
@@ -422,7 +433,7 @@ export default function Registration() {
                                 Register <ChevronRight size={18} style={{ verticalAlign: 'middle', marginLeft: 4 }} />
                             </>
                         )}
-                    </button>
+                    </motion.button>
                 </motion.div>
 
                 {/* Admin Link (Subtle) */}
