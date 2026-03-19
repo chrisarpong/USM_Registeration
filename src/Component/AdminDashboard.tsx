@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
 import { useOutletContext } from 'react-router-dom' // Import context hook
 import { motion } from 'framer-motion'
-import { Users, UserCheck, UserPlus, RefreshCw, Edit2, Trash2, Download } from 'lucide-react'
+import { Users, UserCheck, UserPlus, RefreshCw, Edit2, Trash2, Download, CheckCircle, XCircle } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import EditGuestModal from './EditGuestModal'
 import RegistrationChart from './RegistrationChart'
@@ -17,19 +17,21 @@ type Log = {
     branch: string
     invited_by: string | null
     location: string | null
+    checked_in: boolean
 }
 
 type Stats = {
     total: number
     members: number
     guests: number
+    checkedIn: number
 }
 
 export default function AdminDashboard() {
     const { searchTerm } = useOutletContext<{ searchTerm: string }>() // Get search term from Layout
     const [loading, setLoading] = useState(true)
     const [logs, setLogs] = useState<Log[]>([])
-    const [stats, setStats] = useState<Stats>({ total: 0, members: 0, guests: 0 })
+    const [stats, setStats] = useState<Stats>({ total: 0, members: 0, guests: 0, checkedIn: 0 })
     const [branchFilter, setBranchFilter] = useState('') // Local filter
     const [branches, setBranches] = useState<string[]>([])
 
@@ -105,11 +107,13 @@ export default function AdminDashboard() {
             const { count: totalCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true })
             const { count: memberCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true }).eq('status', 'Member')
             const { count: guestCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true }).in('status', ['Guest', 'First Timer'])
+            const { count: checkedInCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true }).eq('checked_in', true)
 
             setStats({
                 total: totalCount || 0,
                 members: memberCount || 0,
-                guests: guestCount || 0
+                guests: guestCount || 0,
+                checkedIn: checkedInCount || 0
             })
         }
 
@@ -153,7 +157,8 @@ export default function AdminDashboard() {
                         return {
                             total: prev.total + 1,
                             members: isMember ? prev.members + 1 : prev.members,
-                            guests: !isMember ? prev.guests + 1 : prev.guests
+                            guests: !isMember ? prev.guests + 1 : prev.guests,
+                            checkedIn: newLog.checked_in ? prev.checkedIn + 1 : prev.checkedIn
                         }
                     })
                 }
@@ -186,6 +191,26 @@ export default function AdminDashboard() {
     const openEditModal = (log: Log) => {
         setEditingLog(log)
         setIsEditModalOpen(true)
+    }
+
+    const handleCheckIn = async (id: number, currentStatus: boolean) => {
+        // Optimistic UI update
+        setLogs(prev => prev.map(l => l.id === id ? { ...l, checked_in: !currentStatus } : l))
+        setStats(prev => ({ ...prev, checkedIn: !currentStatus ? prev.checkedIn + 1 : prev.checkedIn - 1 }))
+
+        const { error } = await supabase
+            .from('attendance_logs')
+            .update({ checked_in: !currentStatus })
+            .eq('id', id)
+
+        if (error) {
+            toast.error('Failed to update check-in status')
+            // Revert changes
+            setLogs(prev => prev.map(l => l.id === id ? { ...l, checked_in: currentStatus } : l))
+            setStats(prev => ({ ...prev, checkedIn: currentStatus ? prev.checkedIn + 1 : prev.checkedIn - 1 }))
+        } else {
+            toast.success(!currentStatus ? 'Checked in successfully' : 'Check-in removed')
+        }
     }
 
     const exportToCSV = () => {
@@ -252,6 +277,13 @@ export default function AdminDashboard() {
                         <h1>{stats.guests}</h1>
                     </div>
                 </div>
+                <div className="stat-card" style={{ border: '1px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.05)' }}>
+                    <div className="icon" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#10b981' }}><CheckCircle size={24} /></div>
+                    <div>
+                        <h4 style={{ color: '#10b981' }}>Checked In</h4>
+                        <h1 style={{ color: '#10b981' }}>{stats.checkedIn}</h1>
+                    </div>
+                </div>
             </div>
 
             {/* Registration Chart */}
@@ -310,14 +342,15 @@ export default function AdminDashboard() {
                             <th>Location</th>
                             <th>Phone</th>
                             <th>Invited By</th>
+                            <th style={{ textAlign: 'center' }}>Check-In</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {loading && page === 0 ? (
-                            <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px' }}>Loading...</td></tr>
+                            <tr><td colSpan={9} style={{ textAlign: 'center', padding: '40px' }}>Loading...</td></tr>
                         ) : filteredLogs.length === 0 ? (
-                            <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px' }}>No records found matching "{searchTerm}"</td></tr>
+                            <tr><td colSpan={9} style={{ textAlign: 'center', padding: '40px' }}>No records found matching "{searchTerm}"</td></tr>
                         ) : (
                             filteredLogs.map(log => (
                                 <tr key={log.id}>
@@ -345,6 +378,29 @@ export default function AdminDashboard() {
                                     <td style={{ maxWidth: '140px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={log.location || '-'}>{log.location || '-'}</td>
                                     <td>{log.phone_number}</td>
                                     <td style={{ color: 'rgba(255,255,255,0.6)' }}>{log.invited_by || '-'}</td>
+                                    <td style={{ textAlign: 'center' }}>
+                                        <button 
+                                            onClick={() => handleCheckIn(log.id, log.checked_in)}
+                                            style={{
+                                                background: log.checked_in ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.05)',
+                                                border: log.checked_in ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(255,255,255,0.1)',
+                                                color: log.checked_in ? '#10b981' : 'gray',
+                                                padding: '6px 12px',
+                                                borderRadius: '20px',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                margin: '0 auto',
+                                                transition: 'all 0.2s',
+                                                fontSize: '12px',
+                                                fontWeight: 600
+                                            }}
+                                        >
+                                            {log.checked_in ? <CheckCircle size={14} /> : <XCircle size={14} />}
+                                            {log.checked_in ? 'Checked In' : 'Pending'}
+                                        </button>
+                                    </td>
                                     <td>
                                         {confirmDeleteId === log.id ? (
                                             <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
