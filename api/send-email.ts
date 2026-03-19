@@ -19,12 +19,16 @@ export default async function handler(request: Request) {
         }
 
         const { data, error } = await resend.emails.send({
-            from: 'USM Registration <onboarding@resend.dev>', // Update this if you verify a domain
+            from: 'USM Registration <onboarding@resend.dev>', // Resend strictly blocks generic emails here
+            replyTo: 'gospelwavescitadel19@gmail.com', // Replies safely route to church inbox
             to: [email],
             subject: 'Welcome to USM! 🎉',
             html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-            <h1 style="color: #4f46e5;">You're Registered!</h1>
+            <div style="text-align: center; margin-bottom: 24px;">
+                <img src="https://usm-registeration.vercel.app/USM.jpeg" alt="USM Flyer" style="width: 100%; max-width: 600px; height: auto; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1);" />
+            </div>
+            <h1 style="color: #4f46e5; margin-top: 0;">You're Registered!</h1>
             <p>Hi ${name},</p>
             <p>We are thrilled to confirm your registration for the <strong>Unending Spirit Meeting (USM)</strong>.</p>
             
