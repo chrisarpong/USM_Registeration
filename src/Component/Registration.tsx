@@ -13,6 +13,7 @@ import {
     UserPlus,
     ChevronRight,
     Mail,
+    Sparkles,
 } from 'lucide-react'
 
 import flyerImage from '../assets/USM.jpeg'
@@ -182,7 +183,7 @@ export default function Registration() {
                     <div style={{ position: 'absolute', bottom: '20px', left: '32px' }}>
                         <div className="event-badge">
                             <Calendar size={14} />
-                            21st Feb
+                            28th March
                         </div>
                         <h1>USM<br />Registration</h1>
                     </div>
@@ -215,8 +216,18 @@ export default function Registration() {
                                     <Clock size={16} />
                                 </div>
                                 <div className="info-detail-text">
-                                    <h4>9:00 AM</h4>
+                                    <h4>10:00 AM</h4>
                                     <p>Doors open early</p>
+                                </div>
+                            </div>
+
+                            <div className="info-detail">
+                                <div className="info-icon">
+                                    <Sparkles size={16} />
+                                </div>
+                                <div className="info-detail-text">
+                                    <h4>Theme</h4>
+                                    <p>The Gift of Healing</p>
                                 </div>
                             </div>
 
