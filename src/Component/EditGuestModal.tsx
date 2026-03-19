@@ -28,14 +28,16 @@ export default function EditGuestModal({ isOpen, onClose, log, onUpdate }: Props
 
     useEffect(() => {
         if (log) {
-            setFormData({
-                full_name: log.full_name,
-                phone_number: log.phone_number,
-                status: log.status,
-                branch: log.branch,
-                invited_by: log.invited_by,
-                location: log.location
-            })
+            setTimeout(() => {
+                setFormData({
+                    full_name: log.full_name,
+                    phone_number: log.phone_number,
+                    status: log.status,
+                    branch: log.branch,
+                    invited_by: log.invited_by,
+                    location: log.location
+                })
+            }, 10)
         }
 
         // Fetch branches
@@ -53,10 +55,15 @@ export default function EditGuestModal({ isOpen, onClose, log, onUpdate }: Props
     const handleSave = async () => {
         if (!log) return
         setLoading(true)
+        
+        const payloadToSave = { ...formData }
+        if (payloadToSave.status === 'Guest') {
+            payloadToSave.branch = 'N/A'
+        }
 
         const { error } = await supabase
             .from('attendance_logs')
-            .update(formData)
+            .update(payloadToSave)
             .eq('id', log.id)
 
         setLoading(false)
@@ -157,18 +164,20 @@ export default function EditGuestModal({ isOpen, onClose, log, onUpdate }: Props
                                     </select>
                                 </div>
                             </div>
-                            <div>
-                                <label style={{ display: 'block', fontSize: '13px', color: 'gray', marginBottom: '6px' }}>Branch</label>
-                                <div className="input-wrapper" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                                    <select
-                                        value={formData.branch || ''}
-                                        onChange={e => handleChange('branch', e.target.value)}
-                                        style={{ background: 'transparent', border: 'none', color: 'white', padding: '10px', width: '100%' }}
-                                    >
-                                        {branches.map(b => <option key={b} value={b}>{b}</option>)}
-                                    </select>
+                            {formData.status === 'Member' && (
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '13px', color: 'gray', marginBottom: '6px' }}>Branch</label>
+                                    <div className="input-wrapper" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                        <select
+                                            value={formData.branch || ''}
+                                            onChange={e => handleChange('branch', e.target.value)}
+                                            style={{ background: 'transparent', border: 'none', color: 'white', padding: '10px', width: '100%' }}
+                                        >
+                                            {branches.map(b => <option key={b} value={b}>{b}</option>)}
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
 
                         {/* Invited By (Conditional) */}
@@ -186,6 +195,19 @@ export default function EditGuestModal({ isOpen, onClose, log, onUpdate }: Props
                                 </div>
                             </div>
                         )}
+
+                        {/* Location (Globally Required) */}
+                        <div>
+                            <label style={{ display: 'block', fontSize: '13px', color: 'gray', marginBottom: '6px' }}>Location</label>
+                            <div className="input-wrapper" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                <input
+                                    value={formData.location || ''}
+                                    onChange={e => handleChange('location', e.target.value)}
+                                    placeholder="Attendee location"
+                                    style={{ background: 'transparent', border: 'none', color: 'white', padding: '10px', width: '100%' }}
+                                />
+                            </div>
+                        </div>
 
                     </div>
 

@@ -40,7 +40,7 @@ export default function Registration() {
     const [loading, setLoading] = useState(false)
 
     // Conditional visibility
-    const showLocation = status === 'Member' || status === 'Guest'
+    const showBranch = status === 'Member'
     const showInvitedBy = status === 'Guest'
 
     // Fetch branches on mount
@@ -68,11 +68,12 @@ export default function Registration() {
     // Clear conditional fields when status changes
     useEffect(() => {
         const timeout = setTimeout(() => {
-            if (!showLocation) setLocation('')
+            if (!showBranch) setBranch('N/A')
+            if (showBranch && branch === 'N/A') setBranch(branches.length > 0 ? branches[0].name : '')
             if (!showInvitedBy) setInvitee('')
         }, 10)
         return () => clearTimeout(timeout)
-    }, [status, showLocation, showInvitedBy])
+    }, [status, showBranch, showInvitedBy, branches, branch])
 
     const resetForm = () => {
         setStatus('Member')
@@ -89,13 +90,13 @@ export default function Registration() {
     const handleRegister = async () => {
         if (!fullName.trim()) return toast.error('Please enter your full name')
         if (!phone.trim()) return toast.error('Please enter your phone number')
-        // Email is optional? User said "Confirmation message". Best to make it required if we promised it.
-        // But let's make it optional to not block registration if they don't have one?
-        // User request: "Send a message automatically". Implies required.
         if (!email.trim()) return toast.error('Please enter your email address')
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         if (!emailRegex.test(email.trim())) return toast.error('Please enter a valid email address')
-        if (!branch) return toast.error('Please select a branch')
+        
+        const finalBranch = status === 'Guest' ? 'N/A' : branch
+        if (status === 'Member' && !finalBranch) return toast.error('Please select a branch')
+        if (!location.trim()) return toast.error('Please enter your location')
 
         setLoading(true)
 
@@ -125,8 +126,8 @@ export default function Registration() {
                     phone_number: phone.trim(),
                     email: email.trim(),
                     status: status,
-                    branch: branch,
-                    location: showLocation ? location.trim() || null : null,
+                    branch: finalBranch,
+                    location: location.trim(),
                     invited_by: showInvitedBy ? invitee.trim() || null : null,
                 }
             ])
@@ -336,30 +337,9 @@ export default function Registration() {
                         </div>
                     </div>
 
-                    {/* Branch */}
-                    <div className="form-group">
-                        <label>Branch</label>
-                        <div className="input-wrapper">
-                            <Building2 size={18} className="input-icon" />
-                            <select
-                                value={branch}
-                                onChange={(e) => setBranch(e.target.value)}
-                            >
-                                {branches.length === 0 && (
-                                    <option disabled>Loading branches...</option>
-                                )}
-                                {branches.map((b) => (
-                                    <option key={b.id} value={b.name}>
-                                        {b.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* Location */}
+                    {/* Branch (Conditional) */}
                     <AnimatePresence>
-                        {showLocation && (
+                        {showBranch && (
                             <motion.div
                                 className="form-group"
                                 initial={{ opacity: 0, height: 0 }}
@@ -367,19 +347,40 @@ export default function Registration() {
                                 exit={{ opacity: 0, height: 0 }}
                                 style={{ overflow: 'hidden' }}
                             >
-                                <label>Location</label>
+                                <label>Branch</label>
                                 <div className="input-wrapper">
-                                    <MapPin size={18} className="input-icon" />
-                                    <input
-                                        type="text"
-                                        placeholder="Your location"
-                                        value={location}
-                                        onChange={(e) => setLocation(e.target.value)}
-                                    />
+                                    <Building2 size={18} className="input-icon" />
+                                    <select
+                                        value={branch}
+                                        onChange={(e) => setBranch(e.target.value)}
+                                    >
+                                        {branches.length === 0 && (
+                                            <option disabled>Loading branches...</option>
+                                        )}
+                                        {branches.map((b) => (
+                                            <option key={b.id} value={b.name}>
+                                                {b.name}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
                             </motion.div>
                         )}
                     </AnimatePresence>
+
+                    {/* Location (Globally Required) */}
+                    <div className="form-group">
+                        <label>Location</label>
+                        <div className="input-wrapper">
+                            <MapPin size={18} className="input-icon" />
+                            <input
+                                type="text"
+                                placeholder="Your location (e.g., Kasoa, Accra)"
+                                value={location}
+                                onChange={(e) => setLocation(e.target.value)}
+                            />
+                        </div>
+                    </div>
 
                     {/* Invited By */}
                     <AnimatePresence>

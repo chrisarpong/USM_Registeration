@@ -74,7 +74,7 @@ export default function AdminDashboard() {
             .range(start, end)
 
         if (currentSearch) {
-            query = query.or(`full_name.ilike.%${currentSearch}%,phone_number.ilike.%${currentSearch}%,branch.ilike.%${currentSearch}%`)
+            query = query.or(`full_name.ilike.%${currentSearch}%,phone_number.ilike.%${currentSearch}%,branch.ilike.%${currentSearch}%,location.ilike.%${currentSearch}%`)
         }
         if (currentBranch) {
             query = query.eq('branch', currentBranch)
@@ -215,7 +215,8 @@ export default function AdminDashboard() {
         const matchesSearch =
             log.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             log.phone_number?.includes(searchTerm) ||
-            log.branch?.toLowerCase().includes(searchTerm.toLowerCase())
+            log.branch?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            log.location?.toLowerCase().includes(searchTerm.toLowerCase())
 
         const matchesBranch = branchFilter ? log.branch === branchFilter : true
 
@@ -306,6 +307,7 @@ export default function AdminDashboard() {
                             <th>Name</th>
                             <th>Status</th>
                             <th>Branch</th>
+                            <th>Location</th>
                             <th>Phone</th>
                             <th>Invited By</th>
                             <th>Actions</th>
@@ -313,9 +315,9 @@ export default function AdminDashboard() {
                     </thead>
                     <tbody>
                         {loading && page === 0 ? (
-                            <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px' }}>Loading...</td></tr>
+                            <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px' }}>Loading...</td></tr>
                         ) : filteredLogs.length === 0 ? (
-                            <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px' }}>No records found matching "{searchTerm}"</td></tr>
+                            <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px' }}>No records found matching "{searchTerm}"</td></tr>
                         ) : (
                             filteredLogs.map(log => (
                                 <tr key={log.id}>
@@ -339,7 +341,8 @@ export default function AdminDashboard() {
                                             {log.status}
                                         </span>
                                     </td>
-                                    <td>{log.branch}</td>
+                                    <td>{log.branch === 'N/A' ? '-' : log.branch}</td>
+                                    <td style={{ maxWidth: '140px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={log.location || '-'}>{log.location || '-'}</td>
                                     <td>{log.phone_number}</td>
                                     <td style={{ color: 'rgba(255,255,255,0.6)' }}>{log.invited_by || '-'}</td>
                                     <td>

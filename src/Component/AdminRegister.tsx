@@ -36,7 +36,7 @@ export default function AdminRegister() {
     const [success, setSuccess] = useState(false)
 
     // Conditional visibility
-    const showLocation = status === 'Member' || status === 'Guest'
+    const showBranch = status === 'Member'
     const showInvitedBy = status === 'Guest'
 
     useEffect(() => {
@@ -49,6 +49,16 @@ export default function AdminRegister() {
         }
         fetchBranches()
     }, [])
+
+    // Clear conditional fields when status changes
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            if (!showBranch) setBranch('N/A')
+            if (showBranch && branch === 'N/A') setBranch(branches.length > 0 ? branches[0].name : '')
+            if (!showInvitedBy) setInvitee('')
+        }, 10)
+        return () => clearTimeout(timeout)
+    }, [status, showBranch, showInvitedBy, branches, branch])
 
     const resetForm = () => {
         setStatus('Member')
@@ -72,6 +82,10 @@ export default function AdminRegister() {
             return toast.error('Please enter a valid email address')
         }
         
+        const finalBranch = status === 'Guest' ? 'N/A' : branch
+        if (status === 'Member' && !finalBranch) return toast.error('Please select a branch')
+        if (!location.trim()) return toast.error('Please enter a location')
+
         setLoading(true)
         // Check for existing registration
         const { data: existingUser, error: checkError } = await supabase
@@ -98,8 +112,8 @@ export default function AdminRegister() {
                     phone_number: phone.trim(),
                     email: email.trim() || null,
                     status: status,
-                    branch: branch,
-                    location: showLocation ? location.trim() || null : null,
+                    branch: finalBranch,
+                    location: location.trim(),
                     invited_by: showInvitedBy ? invitee.trim() || null : null,
                 }
             ])
@@ -225,36 +239,36 @@ export default function AdminRegister() {
                     </div>
 
                     {/* Branch */}
-                    <div className="form-group">
-                        <label>Branch</label>
-                        <div className="input-wrapper">
-                            <Building2 size={18} className="input-icon" />
-                            <select
-                                value={branch}
-                                onChange={(e) => setBranch(e.target.value)}
-                            >
-                                {branches.map((b) => (
-                                    <option key={b.id} value={b.name}>{b.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* Dynamic Fields */}
-                    {showLocation && (
+                    {showBranch && (
                         <div className="form-group">
-                            <label>Location</label>
+                            <label>Branch</label>
                             <div className="input-wrapper">
-                                <MapPin size={18} className="input-icon" />
-                                <input
-                                    type="text"
-                                    placeholder="Location"
-                                    value={location}
-                                    onChange={(e) => setLocation(e.target.value)}
-                                />
+                                <Building2 size={18} className="input-icon" />
+                                <select
+                                    value={branch}
+                                    onChange={(e) => setBranch(e.target.value)}
+                                >
+                                    {branches.map((b) => (
+                                        <option key={b.id} value={b.name}>{b.name}</option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
                     )}
+
+                    {/* Location (Globally Required) */}
+                    <div className="form-group">
+                        <label>Location</label>
+                        <div className="input-wrapper">
+                            <MapPin size={18} className="input-icon" />
+                            <input
+                                type="text"
+                                placeholder="Location"
+                                value={location}
+                                onChange={(e) => setLocation(e.target.value)}
+                            />
+                        </div>
+                    </div>
 
                     {showInvitedBy && (
                         <div className="form-group">
