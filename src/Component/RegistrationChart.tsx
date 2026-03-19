@@ -98,6 +98,9 @@ export default function RegistrationChart() {
                         fillOpacity={1}
                         fill="url(#colorCount)"
                         strokeWidth={3}
+                        isAnimationActive={true}
+                        animationDuration={1500}
+                        animationEasing="ease-in-out"
                     />
                 </AreaChart>
             </ResponsiveContainer>
