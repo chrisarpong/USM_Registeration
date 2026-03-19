@@ -66,8 +66,11 @@ export default function Registration() {
 
     // Clear conditional fields when status changes
     useEffect(() => {
-        if (!showLocation) setLocation('')
-        if (!showInvitedBy) setInvitee('')
+        const timeout = setTimeout(() => {
+            if (!showLocation) setLocation('')
+            if (!showInvitedBy) setInvitee('')
+        }, 10)
+        return () => clearTimeout(timeout)
     }, [status, showLocation, showInvitedBy])
 
     const resetForm = () => {
@@ -89,6 +92,8 @@ export default function Registration() {
         // But let's make it optional to not block registration if they don't have one?
         // User request: "Send a message automatically". Implies required.
         if (!email.trim()) return toast.error('Please enter your email address')
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(email.trim())) return toast.error('Please enter a valid email address')
         if (!branch) return toast.error('Please select a branch')
 
         setLoading(true)

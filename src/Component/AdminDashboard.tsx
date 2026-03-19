@@ -43,7 +43,7 @@ export default function AdminDashboard() {
     const ITEMS_PER_PAGE = 50
 
     // Fetch Initial Data
-    const fetchData = async (pageNumber = 0) => {
+    const fetchData = async (pageNumber = 0, currentSearch = searchTerm, currentBranch = branchFilter) => {
         if (pageNumber === 0) setLoading(true)
 
         // Fetch Branches for filter (only once)
@@ -56,11 +56,20 @@ export default function AdminDashboard() {
         const start = pageNumber * ITEMS_PER_PAGE
         const end = start + ITEMS_PER_PAGE - 1
 
-        const { data: logsData, error: logsError } = await supabase
+        let query = supabase
             .from('attendance_logs')
             .select('*')
             .order('created_at', { ascending: false })
             .range(start, end)
+
+        if (currentSearch) {
+            query = query.or(`full_name.ilike.%${currentSearch}%,phone_number.ilike.%${currentSearch}%,branch.ilike.%${currentSearch}%`)
+        }
+        if (currentBranch) {
+            query = query.eq('branch', currentBranch)
+        }
+
+        const { data: logsData, error: logsError } = await query
 
         if (logsError) {
             console.error('Error fetching logs:', logsError)
@@ -96,8 +105,18 @@ export default function AdminDashboard() {
         setLoading(false)
     }
 
+    // Re-fetch when search or filter changes (debounced)
     useEffect(() => {
-        fetchData(0)
+        const timeout = setTimeout(() => {
+            setPage(0)
+            fetchData(0, searchTerm, branchFilter)
+        }, 300)
+        return () => clearTimeout(timeout)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchTerm, branchFilter])
+
+    useEffect(() => {
+        // Initial fetch is now handled by the filter effect above.
 
         // Real-time Subscription
         const channel = supabase

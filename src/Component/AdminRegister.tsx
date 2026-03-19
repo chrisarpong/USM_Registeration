@@ -67,8 +67,11 @@ export default function AdminRegister() {
         if (!phone.trim()) return toast.error('Please enter phone number')
         // Email optional for admin manual entry? 
         // Let's make it optional but recommended.
-        // If email is provided, validate it?
-
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (email.trim() && !emailRegex.test(email.trim())) {
+            return toast.error('Please enter a valid email address')
+        }
+        
         setLoading(true)
         // Check for existing registration
         const { data: existingUser, error: checkError } = await supabase
