@@ -177,7 +177,7 @@ export default function Registration() {
                     <div style={{
                         position: 'absolute',
                         inset: 0,
-                        background: 'linear-gradient(to bottom, transparent 0%, rgba(20, 20, 35, 0.9) 90%, #151525 100%)',
+                        background: 'linear-gradient(to bottom, transparent 0%, transparent 60%, rgba(20, 20, 35, 0.95) 95%, #151525 100%)',
                     }} />
 
                     <div style={{ position: 'absolute', bottom: '20px', left: '32px' }}>
