@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
 import { supabase } from '../supabaseClient'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -26,6 +27,7 @@ type Branch = {
 type Status = 'Member' | 'Guest'
 
 export default function Registration() {
+    const navigate = useNavigate()
     // Form state
     const [status, setStatus] = useState<Status>('Member')
     const [phone, setPhone] = useState('')
@@ -152,6 +154,7 @@ export default function Registration() {
 
         toast.success('Registration successful! See you soon! 🎉', { duration: 5000 })
         resetForm()
+        navigate('/success', { state: { name: fullName.trim() } })
     }
 
     return (

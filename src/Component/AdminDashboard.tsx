@@ -335,7 +335,7 @@ export default function AdminDashboard() {
                 <table className="glass-table">
                     <thead>
                         <tr>
-                            <th>Time</th>
+                            <th>Date & Time</th>
                             <th>Name</th>
                             <th>Status</th>
                             <th>Branch</th>
@@ -354,8 +354,13 @@ export default function AdminDashboard() {
                         ) : (
                             filteredLogs.map(log => (
                                 <tr key={log.id}>
-                                    <td style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>
-                                        {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    <td style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px' }}>
+                                        <div style={{ fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginBottom: '4px' }}>
+                                            {new Date(log.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                        </div>
+                                        <div>
+                                            {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </div>
                                     </td>
                                     <td style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px' }}>
                                         <div style={{

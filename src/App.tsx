@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast'
 import { useEffect, useState } from 'react'
 import { supabase } from './supabaseClient' // Fixed path: ./ not ../
 import Registration from './Component/Registration'
+import SuccessPage from './Component/SuccessPage'
 import AdminLogin from './Component/AdminLogin'
 import AdminDashboard from './Component/AdminDashboard'
 import AdminLayout from './Layouts/AdminLayout'
@@ -43,6 +44,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Registration />} />
+          <Route path="/success" element={<SuccessPage />} />
           <Route path="/login" element={<AdminLogin />} />
 
           {/* Protected Admin Routes */}
