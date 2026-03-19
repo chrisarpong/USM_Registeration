@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
 import { useOutletContext } from 'react-router-dom' // Import context hook
 import { motion } from 'framer-motion'
-import { Users, UserCheck, UserPlus, RefreshCw, Edit2, Trash2 } from 'lucide-react'
+import { Users, UserCheck, UserPlus, RefreshCw, Edit2, Trash2, Download } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import EditGuestModal from './EditGuestModal'
 import RegistrationChart from './RegistrationChart'
@@ -41,6 +41,17 @@ export default function AdminDashboard() {
     const [page, setPage] = useState(0)
     const [hasMore, setHasMore] = useState(true)
     const ITEMS_PER_PAGE = 50
+
+    // Premium UI State
+    const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
+
+    // Helper for Avatar Initials
+    const getInitials = (name: string) => {
+        if (!name) return '?'
+        const parts = name.trim().split(' ')
+        if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+        return name.substring(0, 2).toUpperCase()
+    }
 
     // Fetch Initial Data
     const fetchData = async (pageNumber = 0, currentSearch = searchTerm, currentBranch = branchFilter) => {
@@ -157,7 +168,7 @@ export default function AdminDashboard() {
     }, [])
 
     const handleDelete = async (id: number) => {
-        if (!confirm('Are you sure you want to delete this record?')) return
+        setConfirmDeleteId(null) // Reset UI immediately
 
         const { error } = await supabase
             .from('attendance_logs')
@@ -165,18 +176,39 @@ export default function AdminDashboard() {
             .eq('id', id)
 
         if (error) {
-            toast.error('Failed to delete')
+            toast.error('Failed to delete. Check Database Permissions (RLS).')
         } else {
-            toast.success('Record deleted')
+            toast.success('Record deleted successfully')
             setLogs(prev => prev.filter(l => l.id !== id))
-            // Update stats vaguely or refetch
-            fetchData(0)
         }
     }
 
     const openEditModal = (log: Log) => {
         setEditingLog(log)
         setIsEditModalOpen(true)
+    }
+
+    const exportToCSV = () => {
+        const headers = ['Time', 'Name', 'Status', 'Branch', 'Phone', 'Invited By', 'Location']
+        const csvContent = [
+            headers.join(','),
+            ...logs.map(log => [
+                new Date(log.created_at).toLocaleString(),
+                `"${log.full_name || ''}"`,
+                log.status,
+                `"${log.branch || ''}"`,
+                log.phone_number,
+                `"${log.invited_by || ''}"`,
+                `"${log.location || ''}"`
+            ].join(','))
+        ].join('\n')
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+        const link = document.createElement('a')
+        link.href = URL.createObjectURL(blob)
+        link.download = `USM_Registration_Export_${new Date().toISOString().split('T')[0]}.csv`
+        link.click()
+        toast.success('Export downloaded')
     }
 
     const filteredLogs = logs.filter(log => {
@@ -248,7 +280,19 @@ export default function AdminDashboard() {
                     Showing {filteredLogs.length} records
                 </div>
 
-                <button className="btn-icon" onClick={() => fetchData(0)} title="Refresh">
+                <button
+                    onClick={exportToCSV}
+                    title="Export to CSV"
+                    style={{
+                        padding: '10px 16px', background: 'rgba(59, 130, 246, 0.1)',
+                        border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '10px',
+                        color: '#60a5fa', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 500
+                    }}
+                >
+                    <Download size={16} /> Export
+                </button>
+
+                <button className="btn-icon" onClick={() => fetchData(0, searchTerm, branchFilter)} title="Refresh">
                     <RefreshCw size={18} color="white" />
                 </button>
             </div>
@@ -278,7 +322,18 @@ export default function AdminDashboard() {
                                     <td style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>
                                         {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </td>
-                                    <td style={{ fontWeight: 600, color: 'white' }}>{log.full_name}</td>
+                                    <td style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px' }}>
+                                        <div style={{
+                                            width: '32px', height: '32px', borderRadius: '50%',
+                                            background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            fontSize: '12px', fontWeight: 'bold', color: 'white',
+                                            boxShadow: '0 2px 10px rgba(99, 102, 241, 0.3)'
+                                        }}>
+                                            {getInitials(log.full_name)}
+                                        </div>
+                                        <span style={{ fontWeight: 600, color: 'white' }}>{log.full_name}</span>
+                                    </td>
                                     <td>
                                         <span className={`status-badge ${log.status.toLowerCase().replace(' ', '-')}`}>
                                             {log.status}
@@ -288,24 +343,41 @@ export default function AdminDashboard() {
                                     <td>{log.phone_number}</td>
                                     <td style={{ color: 'rgba(255,255,255,0.6)' }}>{log.invited_by || '-'}</td>
                                     <td>
-                                        <div style={{ display: 'flex', gap: '8px' }}>
-                                            <button
-                                                onClick={() => openEditModal(log)}
-                                                className="btn-icon"
-                                                title="Edit"
-                                                style={{ padding: '6px' }}
-                                            >
-                                                <Edit2 size={16} color="#60a5fa" />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(log.id)}
-                                                className="btn-icon"
-                                                title="Delete"
-                                                style={{ padding: '6px' }}
-                                            >
-                                                <Trash2 size={16} color="#ef4444" />
-                                            </button>
-                                        </div>
+                                        {confirmDeleteId === log.id ? (
+                                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                                <button
+                                                    onClick={() => handleDelete(log.id)}
+                                                    style={{ padding: '6px 12px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}
+                                                >
+                                                    Confirm
+                                                </button>
+                                                <button
+                                                    onClick={() => setConfirmDeleteId(null)}
+                                                    style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                <button
+                                                    onClick={() => openEditModal(log)}
+                                                    className="btn-icon"
+                                                    title="Edit"
+                                                    style={{ padding: '6px', background: 'rgba(96, 165, 250, 0.1)', border: '1px solid rgba(96, 165, 250, 0.2)' }}
+                                                >
+                                                    <Edit2 size={16} color="#60a5fa" />
+                                                </button>
+                                                <button
+                                                    onClick={() => setConfirmDeleteId(log.id)}
+                                                    className="btn-icon"
+                                                    title="Delete"
+                                                    style={{ padding: '6px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)' }}
+                                                >
+                                                    <Trash2 size={16} color="#ef4444" />
+                                                </button>
+                                            </div>
+                                        )}
                                     </td>
                                 </tr>
                             ))
