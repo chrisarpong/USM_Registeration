@@ -81,7 +81,7 @@ export default function AdminRegister() {
         if (email.trim() && !emailRegex.test(email.trim())) {
             return toast.error('Please enter a valid email address')
         }
-        
+
         const finalBranch = status === 'Guest' ? 'N/A' : branch
         if (status === 'Member' && !finalBranch) return toast.error('Please select a branch')
         if (!location.trim()) return toast.error('Please enter a location')
