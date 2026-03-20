@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import { Calendar, Clock, MapPin, CheckCircle2, Sparkles } from 'lucide-react';
+import logo from '../assets/logo.png';
 
 export default function SuccessPage() {
     const location = useLocation();
@@ -59,6 +60,10 @@ export default function SuccessPage() {
                 >
                     <CheckCircle2 color="#34d399" size={40} strokeWidth={2.5} />
                 </motion.div>
+
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+                    <img src={logo} alt="USM Logo" style={{ height: '80px', width: 'auto', filter: 'drop-shadow(0 0 16px rgba(168, 85, 247, 0.6))' }} />
+                </div>
 
                 <h1 style={{ fontSize: '32px', fontWeight: 800, marginBottom: '12px', color: 'white' }}>
                     Registration Successful!

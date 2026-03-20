@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 
 import flyerImage from '../assets/USM.jpeg'
+import logo from '../assets/logo.png'
 
 type Branch = {
     id: string
@@ -189,7 +190,10 @@ export default function Registration() {
                             <Calendar size={14} />
                             28th March
                         </div>
-                        <h1>USM<br />Registration</h1>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '16px' }}>
+                            <img src={logo} alt="Church Logo" style={{ height: '56px', width: 'auto', filter: 'drop-shadow(0 0 15px rgba(255, 255, 255, 0.5))' }} />
+                            <h1 style={{ margin: 0 }}>USM<br />Registration</h1>
+                        </div>
                     </div>
                 </div>
 

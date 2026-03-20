@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import adminBgImage from '../assets/11.JPEG'
+import logo from '../assets/logo.png'
 
 export default function AdminLayout() {
     const navigate = useNavigate()
@@ -106,8 +107,9 @@ export default function AdminLayout() {
                 }}
             >
                 {/* Logo */}
-                <div style={{ marginBottom: '40px', paddingLeft: '12px' }}>
-                    <h2 style={{ fontFamily: 'Outfit, sans-serif', color: 'white', fontSize: '24px' }}>
+                <div style={{ marginBottom: '40px', paddingLeft: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <img src={logo} alt="USM Logo" style={{ height: '48px', width: 'auto', filter: 'drop-shadow(0 0 12px rgba(168, 85, 247, 0.8))' }} />
+                    <h2 style={{ fontFamily: 'Outfit, sans-serif', color: 'white', fontSize: '24px', margin: 0 }}>
                         USM <span style={{ color: '#7c5dfa' }}>Admin</span>
                     </h2>
                 </div>

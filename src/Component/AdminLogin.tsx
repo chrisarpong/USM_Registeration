@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Mail, Lock, ChevronRight, ArrowLeft } from 'lucide-react'
+import logo from '../assets/logo.png'
 
 export default function AdminLogin() {
     const [email, setEmail] = useState('')
@@ -38,6 +39,10 @@ export default function AdminLogin() {
             <div className="form-panel" style={{ borderLeft: 'none', padding: '40px' }}>
                 <div style={{ marginBottom: '20px', cursor: 'pointer' }} onClick={() => navigate('/')}>
                     <ArrowLeft size={20} color="white" />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+                    <img src={logo} alt="Church Logo" style={{ height: '70px', width: 'auto', filter: 'drop-shadow(0 0 15px rgba(168, 85, 247, 0.4))' }} />
                 </div>
 
                 <h2>Admin Login</h2>
