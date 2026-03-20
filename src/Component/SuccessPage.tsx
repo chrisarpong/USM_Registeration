@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
-import { Calendar, Clock, MapPin, CheckCircle2, Sparkles } from 'lucide-react';
+import { Calendar, Clock, MapPin, Sparkles } from 'lucide-react';
 import logo from '../assets/logo.png';
 
 export default function SuccessPage() {
@@ -41,25 +41,7 @@ export default function SuccessPage() {
                     background: 'rgba(20, 20, 35, 0.5)'
                 }}
             >
-                <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.3, type: 'spring', bounce: 0.5 }}
-                    style={{
-                        width: '80px',
-                        height: '80px',
-                        borderRadius: '50%',
-                        background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05))',
-                        border: '1px solid rgba(16, 185, 129, 0.5)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        margin: '0 auto 24px',
-                        boxShadow: '0 8px 32px rgba(16, 185, 129, 0.2)'
-                    }}
-                >
-                    <CheckCircle2 color="#34d399" size={40} strokeWidth={2.5} />
-                </motion.div>
+    // The logo is now the primary visual anchor
 
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
                     <img src={logo} alt="USM Logo" style={{ height: '80px', width: 'auto', filter: 'drop-shadow(0 0 16px rgba(168, 85, 247, 0.6))' }} />

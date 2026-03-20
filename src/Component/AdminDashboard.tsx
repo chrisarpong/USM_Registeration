@@ -384,7 +384,7 @@ export default function AdminDashboard() {
                                     <td>{log.phone_number}</td>
                                     <td style={{ color: 'rgba(255,255,255,0.6)' }}>{log.invited_by || '-'}</td>
                                     <td style={{ textAlign: 'center' }}>
-                                        <motion.button 
+                                        <motion.button
                                             whileHover={{ scale: 1.05, boxShadow: log.checked_in ? '0 4px 15px rgba(16, 185, 129, 0.2)' : '0 4px 15px rgba(255,255,255,0.1)' }}
                                             whileTap={{ scale: 0.95 }}
                                             onClick={() => handleCheckIn(log.id, log.checked_in)}
