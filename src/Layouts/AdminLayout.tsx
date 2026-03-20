@@ -8,9 +8,11 @@ import {
     LogOut,
     Search,
     Bell,
-    Menu
+    Menu,
+    X
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import adminBgImage from '../assets/11.JPEG'
 
 export default function AdminLayout() {
     const navigate = useNavigate()
@@ -51,7 +53,11 @@ export default function AdminLayout() {
             height: '100vh',
             width: '100vw',
             overflow: 'hidden',
-            background: '#0f0f1a' // Dark background behind glass
+            backgroundColor: '#0f0f1a', // Fallback color
+            backgroundImage: `linear-gradient(135deg, rgba(15, 15, 26, 0.95) 0%, rgba(40, 20, 60, 0.85) 100%), url(${adminBgImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundAttachment: 'fixed',
         }}>
             {/* ─── MOBILE OVERLAY ─── */}
             <AnimatePresence>
@@ -173,23 +179,39 @@ export default function AdminLayout() {
                     backdropFilter: 'blur(10px)'
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                        <button
+                        <motion.button
                             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
                             style={{
-                                background: 'transparent',
-                                border: 'none',
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
                                 color: 'white',
                                 cursor: 'pointer',
                                 padding: '8px',
                                 marginLeft: '-8px',
+                                borderRadius: '12px',
                                 display: 'flex',
                                 alignItems: 'center',
-                                transition: 'transform 0.2s',
-                                transform: isSidebarOpen && isMobile ? 'rotate(90deg)' : 'rotate(0deg)'
+                                justifyContent: 'center',
+                                width: '40px',
+                                height: '40px',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                             }}
                         >
-                            <Menu size={24} />
-                        </button>
+                            <AnimatePresence mode="wait" initial={false}>
+                                <motion.div
+                                    key={isSidebarOpen ? 'close' : 'open'}
+                                    initial={{ opacity: 0, rotate: -90 }}
+                                    animate={{ opacity: 1, rotate: 0 }}
+                                    exit={{ opacity: 0, rotate: 90 }}
+                                    transition={{ duration: 0.2 }}
+                                    style={{ display: 'flex' }}
+                                >
+                                    {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+                                </motion.div>
+                            </AnimatePresence>
+                        </motion.button>
                         <h1 style={{ fontSize: '20px', fontWeight: 600, color: 'white' }}>{pageTitle}</h1>
                     </div>
 
