@@ -11,21 +11,21 @@ export default function SuccessPage() {
         <div className="registration-container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
             {/* Background Animations */}
             <div className="background-shapes">
-                <motion.div 
-                    className="shape" 
-                    animate={{ x: [0, 50, 0], y: [0, 30, 0], rotate: [0, 90, 0] }} 
+                <motion.div
+                    className="shape"
+                    animate={{ x: [0, 50, 0], y: [0, 30, 0], rotate: [0, 90, 0] }}
                     transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
                     style={{ width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%)', position: 'absolute', top: '-10%', left: '-10%' }}
                 />
-                <motion.div 
-                    className="shape" 
-                    animate={{ x: [0, -40, 0], y: [0, 40, 0], rotate: [0, -90, 0] }} 
+                <motion.div
+                    className="shape"
+                    animate={{ x: [0, -40, 0], y: [0, 40, 0], rotate: [0, -90, 0] }}
                     transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
                     style={{ width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(168, 85, 247, 0.1) 0%, transparent 70%)', position: 'absolute', bottom: '-20%', right: '-10%' }}
                 />
             </div>
 
-            <motion.div 
+            <motion.div
                 className="glass-panel"
                 initial={{ opacity: 0, y: 30, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -41,7 +41,6 @@ export default function SuccessPage() {
                     background: 'rgba(20, 20, 35, 0.5)'
                 }}
             >
-    // The logo is now the primary visual anchor
 
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
                     <img src={logo} alt="USM Logo" style={{ height: '80px', width: 'auto', filter: 'drop-shadow(0 0 16px rgba(168, 85, 247, 0.6))' }} />
@@ -50,7 +49,7 @@ export default function SuccessPage() {
                 <h1 style={{ fontSize: '32px', fontWeight: 800, marginBottom: '12px', color: 'white' }}>
                     Registration Successful!
                 </h1>
-                
+
                 <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.7)', marginBottom: '32px', lineHeight: 1.6 }}>
                     Hi <span style={{ color: 'white', fontWeight: 600 }}>{name}</span>, we are absolutely thrilled to welcome you to the Unending Spirit Meeting. A confirmation has been sent to your email.
                 </p>
