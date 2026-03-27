@@ -18,7 +18,7 @@ type Branch = {
     name: string
 }
 
-type Status = 'Member' | 'Guest'
+type Status = 'Member' | 'Guest' | 'First Timer'
 
 export default function AdminRegister() {
     // Form state
@@ -37,7 +37,7 @@ export default function AdminRegister() {
 
     // Conditional visibility
     const showBranch = status === 'Member'
-    const showInvitedBy = status === 'Guest'
+    const showInvitedBy = status === 'Guest' || status === 'First Timer'
 
     useEffect(() => {
         const fetchBranches = async () => {
@@ -53,7 +53,7 @@ export default function AdminRegister() {
     // Clear conditional fields when status changes
     useEffect(() => {
         const timeout = setTimeout(() => {
-            if (!showBranch) setBranch('N/A')
+            if (status !== 'Member') setBranch('N/A')
             if (showBranch && branch === 'N/A') setBranch(branches.length > 0 ? branches[0].name : '')
             if (!showInvitedBy) setInvitee('')
         }, 10)
@@ -82,27 +82,11 @@ export default function AdminRegister() {
             return toast.error('Please enter a valid email address')
         }
 
-        const finalBranch = status === 'Guest' ? 'N/A' : branch
+        const finalBranch = status === 'Member' ? branch : 'N/A'
         if (status === 'Member' && !finalBranch) return toast.error('Please select a branch')
         if (!location.trim()) return toast.error('Please enter a location')
 
         setLoading(true)
-        // Check for existing registration
-        const { data: existingUser, error: checkError } = await supabase
-            .from('attendance_logs')
-            .select('id')
-            .eq('phone_number', phone.trim())
-            .maybeSingle()
-
-        if (checkError) {
-            setLoading(false)
-            return toast.error('Error checking registration')
-        }
-
-        if (existingUser) {
-            setLoading(false)
-            return toast.error('Phone number already registered!')
-        }
 
         const { error } = await supabase
             .from('attendance_logs')
@@ -192,6 +176,7 @@ export default function AdminRegister() {
                                 >
                                     <option value="Member">Member</option>
                                     <option value="Guest">Guest</option>
+                                    <option value="First Timer">First Timer</option>
                                 </select>
                             </div>
                         </div>

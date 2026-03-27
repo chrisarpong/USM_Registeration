@@ -25,7 +25,7 @@ type Branch = {
     name: string
 }
 
-type Status = 'Member' | 'Guest'
+type Status = 'Member' | 'Guest' | 'First Timer'
 
 export default function Registration() {
     const navigate = useNavigate()
@@ -44,7 +44,7 @@ export default function Registration() {
 
     // Conditional visibility
     const showBranch = status === 'Member'
-    const showInvitedBy = status === 'Guest'
+    const showInvitedBy = status === 'Guest' || status === 'First Timer'
 
     // Fetch branches on mount
     useEffect(() => {
@@ -71,7 +71,7 @@ export default function Registration() {
     // Clear conditional fields when status changes
     useEffect(() => {
         const timeout = setTimeout(() => {
-            if (!showBranch) setBranch('N/A')
+            if (status !== 'Member') setBranch('N/A')
             if (showBranch && branch === 'N/A') setBranch(branches.length > 0 ? branches[0].name : '')
             if (!showInvitedBy) setInvitee('')
         }, 10)
@@ -97,29 +97,11 @@ export default function Registration() {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         if (!emailRegex.test(email.trim())) return toast.error('Please enter a valid email address')
         
-        const finalBranch = status === 'Guest' ? 'N/A' : branch
+        const finalBranch = status === 'Member' ? branch : 'N/A'
         if (status === 'Member' && !finalBranch) return toast.error('Please select a branch')
         if (!location.trim()) return toast.error('Please enter your location')
 
         setLoading(true)
-
-        // Check for existing registration with this phone number
-        const { data: existingUser, error: checkError } = await supabase
-            .from('attendance_logs')
-            .select('id')
-            .eq('phone_number', phone.trim())
-            .maybeSingle()
-
-        if (checkError) {
-            setLoading(false)
-            console.error('Check error:', checkError)
-            return toast.error('Error checking registration status')
-        }
-
-        if (existingUser) {
-            setLoading(false)
-            return toast.error('This phone number is already registered!')
-        }
 
         const { error } = await supabase
             .from('attendance_logs')
@@ -298,6 +280,7 @@ export default function Registration() {
                                 >
                                     <option value="Member">Member</option>
                                     <option value="Guest">Guest</option>
+                                    <option value="First Timer">First Timer</option>
                                 </select>
                             </div>
                         </div>
