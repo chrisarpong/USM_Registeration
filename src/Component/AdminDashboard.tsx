@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
 import { useOutletContext } from 'react-router-dom' // Import context hook
 import { motion } from 'framer-motion'
-import { Users, UserCheck, UserPlus, RefreshCw, Edit2, Trash2, Download, CheckCircle, XCircle, Sparkles } from 'lucide-react'
+import { Users, UserCheck, UserPlus, RefreshCw, Edit2, Trash2, Download, CheckCircle, XCircle, Sparkles, Scan } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import EditGuestModal from './EditGuestModal'
 import RegistrationChart from './RegistrationChart'
+import QRScannerModal from './QRScannerModal'
 
 // Types for our data
 type Log = {
@@ -39,6 +40,7 @@ export default function AdminDashboard() {
     // Edit Modal State
     const [editingLog, setEditingLog] = useState<Log | null>(null)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+    const [isScannerOpen, setIsScannerOpen] = useState(false)
 
     // Pagination State
     const [page, setPage] = useState(0)
@@ -218,6 +220,35 @@ export default function AdminDashboard() {
         }
     }
 
+    const handleQRScan = async (decodedText: string) => {
+        const registrationId = parseInt(decodedText)
+        if (isNaN(registrationId)) return toast.error('Invalid QR Code format')
+
+        setLoading(true)
+        const { data, error } = await supabase
+            .from('attendance_logs')
+            .select('id, full_name, checked_in')
+            .eq('id', registrationId)
+            .single()
+
+        setLoading(false)
+
+        if (error || !data) {
+            return toast.error('Attendee not found in database')
+        }
+
+        if (data.checked_in) {
+            return toast.error(`${data.full_name} is already checked in`)
+        }
+
+        // Perform Check-in
+        await handleCheckIn(data.id, false)
+        toast.success(`Check-in Successful: ${data.full_name}`, {
+            icon: '✅',
+            duration: 4000
+        })
+    }
+
     const exportToCSV = () => {
         const headers = ['Time', 'Name', 'Status', 'Branch', 'Phone', 'Invited By', 'Location']
         const csvContent = [
@@ -335,6 +366,18 @@ export default function AdminDashboard() {
                     }}
                 >
                     <Download size={16} /> Export
+                </button>
+
+                <button
+                    onClick={() => setIsScannerOpen(true)}
+                    title="Scan Attendee Pass"
+                    style={{
+                        padding: '10px 16px', background: 'rgba(168, 85, 247, 0.1)',
+                        border: '1px solid rgba(168, 85, 247, 0.2)', borderRadius: '10px',
+                        color: '#a855f7', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600
+                    }}
+                >
+                    <Scan size={16} /> Scan Pass
                 </button>
 
                 <button className="btn-icon" onClick={() => fetchData(0, searchTerm, branchFilter)} title="Refresh">
@@ -495,6 +538,12 @@ export default function AdminDashboard() {
                 onClose={() => setIsEditModalOpen(false)}
                 log={editingLog}
                 onUpdate={() => fetchData(0)}
+            />
+
+            <QRScannerModal
+                isOpen={isScannerOpen}
+                onClose={() => setIsScannerOpen(false)}
+                onScan={handleQRScan}
             />
         </motion.div>
     )

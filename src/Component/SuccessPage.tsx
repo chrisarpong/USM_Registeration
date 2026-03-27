@@ -1,11 +1,18 @@
 import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
-import { Calendar, Clock, MapPin, Sparkles } from 'lucide-react';
+import { Calendar, Clock, MapPin, Sparkles, Share2 } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import logo from '../assets/logo.png';
 
 export default function SuccessPage() {
     const location = useLocation();
     const name = location.state?.name || 'there';
+    const registrationId = location.state?.registrationId || 'USM-GUEST';
+
+    const shareOnWhatsApp = () => {
+        const message = `Hey! I just registered for the Unending Spirit Meeting at Gospel Waves Citadel. Join me on March 28th! 🕊️✨\n\nRegister here: https://usm-registeration.vercel.app`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+    };
 
     return (
         <div className="registration-container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
@@ -53,6 +60,52 @@ export default function SuccessPage() {
                 <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.7)', marginBottom: '32px', lineHeight: 1.6 }}>
                     Hi <span style={{ color: 'white', fontWeight: 600 }}>{name}</span>, we are absolutely thrilled to welcome you to the Unending Spirit Meeting. A confirmation has been sent to your email.
                 </p>
+
+                {/* QR Code Section */}
+                <div style={{
+                    background: 'white',
+                    padding: '20px',
+                    borderRadius: '16px',
+                    display: 'inline-block',
+                    marginBottom: '24px',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+                }}>
+                    <QRCodeSVG 
+                        value={String(registrationId)} 
+                        size={150}
+                        level="H"
+                        includeMargin={false}
+                    />
+                    <p style={{ color: '#1a1a2e', fontSize: '12px', fontWeight: 700, margin: '10px 0 0 0', letterSpacing: '1px' }}>
+                        YOUR ATTENDANCE PASS
+                    </p>
+                </div>
+
+                <div style={{ marginBottom: '32px' }}>
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={shareOnWhatsApp}
+                        style={{
+                            background: '#25D366',
+                            color: 'white',
+                            border: 'none',
+                            padding: '12px 24px',
+                            borderRadius: '12px',
+                            fontWeight: 700,
+                            fontSize: '15px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            margin: '0 auto',
+                            boxShadow: '0 4px 15px rgba(37, 211, 102, 0.3)'
+                        }}
+                    >
+                        <Share2 size={18} />
+                        Invite a Friend on WhatsApp
+                    </motion.button>
+                </div>
 
                 {/* Event Details Card */}
                 <div style={{

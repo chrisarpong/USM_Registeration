@@ -103,7 +103,7 @@ export default function Registration() {
 
         setLoading(true)
 
-        const { error } = await supabase
+        const { data, error } = await supabase
             .from('attendance_logs')
             .insert([
                 {
@@ -116,6 +116,7 @@ export default function Registration() {
                     invited_by: showInvitedBy ? invitee.trim() || null : null,
                 }
             ])
+            .select()
 
         setLoading(false)
 
@@ -136,8 +137,9 @@ export default function Registration() {
         }).catch(err => console.error('Failed to send email:', err))
 
         toast.success('Registration successful! See you soon! 🎉', { duration: 5000 })
+        const registrationId = data?.[0]?.id
         resetForm()
-        navigate('/success', { state: { name: fullName.trim() } })
+        navigate('/success', { state: { name: fullName.trim(), registrationId } })
     }
 
     return (
