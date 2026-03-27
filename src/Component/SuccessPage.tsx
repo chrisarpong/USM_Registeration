@@ -40,7 +40,7 @@ export default function SuccessPage() {
                 style={{
                     maxWidth: '550px',
                     width: '100%',
-                    padding: '40px',
+                    padding: 'clamp(24px, 6vw, 40px)',
                     textAlign: 'center',
                     position: 'relative',
                     zIndex: 10,
@@ -53,11 +53,11 @@ export default function SuccessPage() {
                     <img src={logo} alt="USM Logo" style={{ height: '80px', width: 'auto', filter: 'drop-shadow(0 0 16px rgba(168, 85, 247, 0.6))' }} />
                 </div>
 
-                <h1 style={{ fontSize: '32px', fontWeight: 800, marginBottom: '12px', color: 'white' }}>
+                <h1 style={{ fontSize: 'clamp(24px, 7vw, 32px)', fontWeight: 800, marginBottom: '12px', color: 'white', lineHeight: 1.2 }}>
                     Registration Successful!
                 </h1>
 
-                <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.7)', marginBottom: '32px', lineHeight: 1.6 }}>
+                <p style={{ fontSize: 'clamp(14px, 4vw, 16px)', color: 'rgba(255,255,255,0.7)', marginBottom: 'clamp(20px, 5vw, 32px)', lineHeight: 1.6 }}>
                     Hi <span style={{ color: 'white', fontWeight: 600 }}>{name}</span>, we are absolutely thrilled to welcome you to the Unending Spirit Meeting. A confirmation has been sent to your email.
                 </p>
 
@@ -111,8 +111,8 @@ export default function SuccessPage() {
                 <div style={{
                     background: 'rgba(0,0,0,0.3)',
                     borderRadius: '16px',
-                    padding: '24px',
-                    marginBottom: '32px',
+                    padding: 'clamp(16px, 4vw, 24px)',
+                    marginBottom: 'clamp(20px, 5vw, 32px)',
                     border: '1px solid rgba(255,255,255,0.05)',
                     textAlign: 'left'
                 }}>

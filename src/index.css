@@ -105,6 +105,20 @@ body::after {
   -webkit-backdrop-filter: blur(16px);
 }
 
+/* ─── Layout Utility: Form Row ─── */
+.form-row {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}
+
 /* ─── Left Panel: Flyer / Event Info ─── */
 .info-panel {
   position: relative;
@@ -136,9 +150,9 @@ body::after {
 
 .info-panel h1 {
   font-family: 'Outfit', sans-serif;
-  font-size: 48px;
+  font-size: clamp(32px, 8vw, 48px);
   font-weight: 800;
-  line-height: 1;
+  line-height: 1.1;
   letter-spacing: -1.5px;
   margin-bottom: 24px;
   color: white;
@@ -324,15 +338,12 @@ select option {
     grid-template-columns: 1fr;
     max-height: none;
     min-height: auto;
-    margin: 20px;
-    /* Add margin for mobile */
-    width: calc(100% - 40px);
-    /* Ensure it doesn't touch edges */
+    margin: 10px;
+    width: calc(100% - 20px);
   }
 
   .info-panel {
-    min-height: 300px;
-    /* Reduce height for mobile */
+    min-height: auto;
     padding: 24px;
   }
 
@@ -344,8 +355,7 @@ select option {
 
   body {
     align-items: flex-start;
-    padding-top: 20px;
-    padding-bottom: 20px;
+    padding: 10px 0;
   }
 }
 

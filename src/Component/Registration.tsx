@@ -169,20 +169,20 @@ export default function Registration() {
                         background: 'linear-gradient(to bottom, transparent 0%, transparent 60%, rgba(20, 20, 35, 0.95) 95%, #151525 100%)',
                     }} />
 
-                    <div style={{ position: 'absolute', bottom: '20px', left: '32px' }}>
+                    <div style={{ position: 'absolute', bottom: '20px', left: 'clamp(20px, 5vw, 32px)' }}>
                         <div className="event-badge">
                             <Calendar size={14} />
                             28th March
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '16px' }}>
-                            <img src={logo} alt="Church Logo" style={{ height: '56px', width: 'auto', filter: 'drop-shadow(0 0 15px rgba(255, 255, 255, 0.5))' }} />
-                            <h1 style={{ margin: 0 }}>USM<br />Registration</h1>
+                            <img src={logo} alt="Church Logo" style={{ height: 'clamp(40px, 6vw, 56px)', width: 'auto', filter: 'drop-shadow(0 0 15px rgba(255, 255, 255, 0.5))' }} />
+                            <h1 style={{ margin: 0, fontSize: 'clamp(20px, 5vw, 28px)', lineHeight: 1.2 }}>USM<br />Registration</h1>
                         </div>
                     </div>
                 </div>
 
                 {/* 2. DETAILS AREA (Bottom Half) */}
-                <div style={{ padding: '0 32px 32px 32px', background: '#151525' }}>
+                <div style={{ padding: 'clamp(20px, 4vw, 32px)', background: '#151525' }}>
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
