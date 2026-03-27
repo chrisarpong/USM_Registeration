@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
 import { useOutletContext } from 'react-router-dom' // Import context hook
 import { motion } from 'framer-motion'
-import { Users, UserCheck, UserPlus, RefreshCw, Edit2, Trash2, Download, CheckCircle, XCircle } from 'lucide-react'
+import { Users, UserCheck, UserPlus, RefreshCw, Edit2, Trash2, Download, CheckCircle, XCircle, Sparkles } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import EditGuestModal from './EditGuestModal'
 import RegistrationChart from './RegistrationChart'
@@ -24,6 +24,7 @@ type Stats = {
     total: number
     members: number
     guests: number
+    firstTimers: number
     checkedIn: number
 }
 
@@ -31,7 +32,7 @@ export default function AdminDashboard() {
     const { searchTerm } = useOutletContext<{ searchTerm: string }>() // Get search term from Layout
     const [loading, setLoading] = useState(true)
     const [logs, setLogs] = useState<Log[]>([])
-    const [stats, setStats] = useState<Stats>({ total: 0, members: 0, guests: 0, checkedIn: 0 })
+    const [stats, setStats] = useState<Stats>({ total: 0, members: 0, guests: 0, firstTimers: 0, checkedIn: 0 })
     const [branchFilter, setBranchFilter] = useState('') // Local filter
     const [branches, setBranches] = useState<string[]>([])
 
@@ -106,13 +107,15 @@ export default function AdminDashboard() {
         if (pageNumber === 0) {
             const { count: totalCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true })
             const { count: memberCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true }).eq('status', 'Member')
-            const { count: guestCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true }).in('status', ['Guest', 'First Timer'])
+            const { count: guestCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true }).eq('status', 'Guest')
+            const { count: firstTimerCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true }).eq('status', 'First Timer')
             const { count: checkedInCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true }).eq('checked_in', true)
 
             setStats({
                 total: totalCount || 0,
                 members: memberCount || 0,
                 guests: guestCount || 0,
+                firstTimers: firstTimerCount || 0,
                 checkedIn: checkedInCount || 0
             })
         }
@@ -154,10 +157,12 @@ export default function AdminDashboard() {
 
                     setStats(prev => {
                         const isMember = newLog.status === 'Member'
+                        const isFirstTimer = newLog.status === 'First Timer'
                         return {
                             total: prev.total + 1,
                             members: isMember ? prev.members + 1 : prev.members,
-                            guests: !isMember ? prev.guests + 1 : prev.guests,
+                            guests: (!isMember && !isFirstTimer) ? prev.guests + 1 : prev.guests,
+                            firstTimers: isFirstTimer ? prev.firstTimers + 1 : prev.firstTimers,
                             checkedIn: newLog.checked_in ? prev.checkedIn + 1 : prev.checkedIn
                         }
                     })
@@ -275,6 +280,13 @@ export default function AdminDashboard() {
                     <div>
                         <h4>Guests</h4>
                         <h1>{stats.guests}</h1>
+                    </div>
+                </div>
+                <div className="stat-card">
+                    <div className="icon" style={{ background: 'rgba(168, 85, 247, 0.2)', color: '#a855f7' }}><Sparkles size={24} /></div>
+                    <div>
+                        <h4>First Timers</h4>
+                        <h1>{stats.firstTimers}</h1>
                     </div>
                 </div>
                 <div className="stat-card" style={{ border: '1px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.05)' }}>

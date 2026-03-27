@@ -25,7 +25,8 @@ export default function AdminReports() {
 
         if (statusFilter !== 'All') {
             if (statusFilter === 'Members') query = query.eq('status', 'Member')
-            if (statusFilter === 'Guests') query = query.in('status', ['Guest', 'First Timer'])
+            if (statusFilter === 'Guests') query = query.eq('status', 'Guest')
+            if (statusFilter === 'First Timers') query = query.eq('status', 'First Timer')
         }
 
         const { data, error } = await query
@@ -121,7 +122,8 @@ export default function AdminReports() {
                                 >
                                     <option value="All">All Attendees</option>
                                     <option value="Members">Members Only</option>
-                                    <option value="Guests">Guests</option>
+                                    <option value="Guests">Guests Only</option>
+                                    <option value="First Timers">First Timers Only</option>
                                 </select>
                             </div>
                         </div>
