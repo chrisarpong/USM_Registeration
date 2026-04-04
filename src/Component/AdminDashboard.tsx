@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
-import { useOutletContext } from 'react-router-dom' // Import context hook
+import { useOutletContext } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Users, UserCheck, UserPlus, RefreshCw, Edit2, Trash2, Download, CheckCircle, XCircle, Sparkles, Scan } from 'lucide-react'
+import { Users, UserCheck, UserPlus, RefreshCw, Edit2, Trash2, Download, CheckCircle, XCircle, Sparkles, Scan, CalendarDays } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import EditGuestModal from './EditGuestModal'
 import RegistrationChart from './RegistrationChart'
 import QRScannerModal from './QRScannerModal'
+import type { USMEvent } from '../types'
+import { formatEventDate } from '../hooks/useEvents'
 
 // Types for our data
 type Log = {
@@ -19,6 +21,7 @@ type Log = {
     invited_by: string | null
     location: string | null
     checked_in: boolean
+    event_id: string | null
 }
 
 type Stats = {
@@ -30,12 +33,16 @@ type Stats = {
 }
 
 export default function AdminDashboard() {
-    const { searchTerm } = useOutletContext<{ searchTerm: string }>() // Get search term from Layout
+    const { searchTerm } = useOutletContext<{ searchTerm: string }>()
     const [loading, setLoading] = useState(true)
     const [logs, setLogs] = useState<Log[]>([])
     const [stats, setStats] = useState<Stats>({ total: 0, members: 0, guests: 0, firstTimers: 0, checkedIn: 0 })
-    const [branchFilter, setBranchFilter] = useState('') // Local filter
+    const [branchFilter, setBranchFilter] = useState('')
     const [branches, setBranches] = useState<string[]>([])
+
+    // Event State
+    const [events, setEvents] = useState<USMEvent[]>([])
+    const [selectedEventId, setSelectedEventId] = useState<string>('')
 
     // Edit Modal State
     const [editingLog, setEditingLog] = useState<Log | null>(null)
@@ -58,8 +65,30 @@ export default function AdminDashboard() {
         return name.substring(0, 2).toUpperCase()
     }
 
-    // Fetch Initial Data
-    const fetchData = async (pageNumber = 0, currentSearch = searchTerm, currentBranch = branchFilter) => {
+    // Fetch events on mount and set default to active event
+    useEffect(() => {
+        supabase
+            .from('events')
+            .select('*')
+            .order('date', { ascending: false })
+            .then(({ data }) => {
+                if (data) {
+                    const typedEvents = data as USMEvent[]
+                    setEvents(typedEvents)
+                    // Default to the active event
+                    const activeEvent = typedEvents.find(e => e.is_active)
+                    if (activeEvent) {
+                        setSelectedEventId(activeEvent.id)
+                    } else if (typedEvents.length > 0) {
+                        setSelectedEventId(typedEvents[0].id)
+                    }
+                }
+            })
+    }, [])
+
+    // Fetch Data for selected event
+    const fetchData = async (pageNumber = 0, currentSearch = searchTerm, currentBranch = branchFilter, eventId = selectedEventId) => {
+        if (!eventId) return
         if (pageNumber === 0) setLoading(true)
 
         // Fetch Branches for filter (only once)
@@ -75,6 +104,7 @@ export default function AdminDashboard() {
         let query = supabase
             .from('attendance_logs')
             .select('*')
+            .eq('event_id', eventId)
             .order('created_at', { ascending: false })
             .range(start, end)
 
@@ -105,13 +135,13 @@ export default function AdminDashboard() {
             }
         }
 
-        // 2. Fetch Stats (Counts) - Only on first load to save resources
+        // 2. Fetch Stats (Counts) - Only on first page
         if (pageNumber === 0) {
-            const { count: totalCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true })
-            const { count: memberCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true }).eq('status', 'Member')
-            const { count: guestCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true }).eq('status', 'Guest')
-            const { count: firstTimerCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true }).eq('status', 'First Timer')
-            const { count: checkedInCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true }).eq('checked_in', true)
+            const { count: totalCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true }).eq('event_id', eventId)
+            const { count: memberCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true }).eq('event_id', eventId).eq('status', 'Member')
+            const { count: guestCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true }).eq('event_id', eventId).eq('status', 'Guest')
+            const { count: firstTimerCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true }).eq('event_id', eventId).eq('status', 'First Timer')
+            const { count: checkedInCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true }).eq('event_id', eventId).eq('checked_in', true)
 
             setStats({
                 total: totalCount || 0,
@@ -125,18 +155,19 @@ export default function AdminDashboard() {
         setLoading(false)
     }
 
-    // Re-fetch when search or filter changes (debounced)
+    // Re-fetch when search, filter, or event changes (debounced)
     useEffect(() => {
+        if (!selectedEventId) return
         const timeout = setTimeout(() => {
             setPage(0)
-            fetchData(0, searchTerm, branchFilter)
+            fetchData(0, searchTerm, branchFilter, selectedEventId)
         }, 300)
         return () => clearTimeout(timeout)
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchTerm, branchFilter])
+    }, [searchTerm, branchFilter, selectedEventId])
 
     useEffect(() => {
-        // Initial fetch is now handled by the filter effect above.
+        if (!selectedEventId) return
 
         // Real-time Subscription
         const channel = supabase
@@ -145,12 +176,13 @@ export default function AdminDashboard() {
                 'postgres_changes',
                 { event: 'INSERT', schema: 'public', table: 'attendance_logs' },
                 (payload) => {
-                    console.log('REALTIME EVENT:', payload)
                     const newLog = payload.new as Log
 
-                    // Toast Notification
+                    // Only add if it matches current event
+                    if (newLog.event_id !== selectedEventId) return
+
                     toast.success(`New Registration: ${newLog.full_name}`, {
-                        id: `registration-${newLog.id}`, // Prevent duplicates
+                        id: `registration-${newLog.id}`,
                         duration: 5000,
                         icon: '🔔'
                     })
@@ -170,17 +202,15 @@ export default function AdminDashboard() {
                     })
                 }
             )
-            .subscribe((status) => {
-                console.log('SUBSCRIPTION STATUS:', status)
-            })
+            .subscribe()
 
         return () => {
             supabase.removeChannel(channel)
         }
-    }, [])
+    }, [selectedEventId])
 
     const handleDelete = async (id: number) => {
-        setConfirmDeleteId(null) // Reset UI immediately
+        setConfirmDeleteId(null)
 
         const { error } = await supabase
             .from('attendance_logs')
@@ -264,10 +294,13 @@ export default function AdminDashboard() {
             ].join(','))
         ].join('\n')
 
+        const selectedEvent = events.find(e => e.id === selectedEventId)
+        const eventLabel = selectedEvent ? formatEventDate(selectedEvent.date) : 'All'
+
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
         const link = document.createElement('a')
         link.href = URL.createObjectURL(blob)
-        link.download = `USM_Registration_Export_${new Date().toISOString().split('T')[0]}.csv`
+        link.download = `USM_${eventLabel}_Export_${new Date().toISOString().split('T')[0]}.csv`
         link.click()
         toast.success('Export downloaded')
     }
@@ -284,12 +317,59 @@ export default function AdminDashboard() {
         return matchesSearch && matchesBranch
     })
 
+    const selectedEvent = events.find(e => e.id === selectedEventId)
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
         >
+            {/* Event Switcher */}
+            <div style={{
+                marginBottom: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '16px',
+                flexWrap: 'wrap'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <CalendarDays size={20} color="#a855f7" />
+                    <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>Viewing Event:</span>
+                </div>
+                <select
+                    value={selectedEventId}
+                    onChange={(e) => setSelectedEventId(e.target.value)}
+                    style={{
+                        padding: '10px 16px',
+                        background: 'rgba(168, 85, 247, 0.1)',
+                        border: '1px solid rgba(168, 85, 247, 0.25)',
+                        borderRadius: '10px',
+                        color: 'white',
+                        fontSize: '14px',
+                        fontWeight: 600,
+                        minWidth: '220px',
+                        cursor: 'pointer'
+                    }}
+                >
+                    {events.map(ev => (
+                        <option key={ev.id} value={ev.id}>
+                            {formatEventDate(ev.date)} — {ev.theme} {ev.is_active ? '(Active)' : ''}
+                        </option>
+                    ))}
+                </select>
+                {selectedEvent && (
+                    <span style={{
+                        padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 600,
+                        background: selectedEvent.is_active ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.05)',
+                        color: selectedEvent.is_active ? '#34d399' : 'rgba(255,255,255,0.4)',
+                        border: `1px solid ${selectedEvent.is_active ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255,255,255,0.1)'}`,
+                    }}>
+                        {selectedEvent.is_active ? '● Live' : 'Past Event'}
+                    </span>
+                )}
+            </div>
+
             {/* Stats Row */}
             <div className="stats-grid">
                 <div className="stat-card">
@@ -330,10 +410,10 @@ export default function AdminDashboard() {
             </div>
 
             {/* Registration Chart */}
-            <RegistrationChart />
+            <RegistrationChart eventId={selectedEventId} />
 
             {/* Filter Bar */}
-            <div style={{ marginBottom: '24px', display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <div style={{ marginBottom: '24px', display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <select
                     value={branchFilter}
                     onChange={(e) => setBranchFilter(e.target.value)}
@@ -380,7 +460,7 @@ export default function AdminDashboard() {
                     <Scan size={16} /> Scan Pass
                 </button>
 
-                <button className="btn-icon" onClick={() => fetchData(0, searchTerm, branchFilter)} title="Refresh">
+                <button className="btn-icon" onClick={() => fetchData(0, searchTerm, branchFilter, selectedEventId)} title="Refresh">
                     <RefreshCw size={18} color="white" />
                 </button>
             </div>
@@ -405,7 +485,9 @@ export default function AdminDashboard() {
                         {loading && page === 0 ? (
                             <tr><td colSpan={9} style={{ textAlign: 'center', padding: '40px' }}>Loading...</td></tr>
                         ) : filteredLogs.length === 0 ? (
-                            <tr><td colSpan={9} style={{ textAlign: 'center', padding: '40px' }}>No records found matching "{searchTerm}"</td></tr>
+                            <tr><td colSpan={9} style={{ textAlign: 'center', padding: '40px' }}>
+                                {searchTerm ? `No records found matching "${searchTerm}"` : 'No registrations for this event yet'}
+                            </td></tr>
                         ) : (
                             filteredLogs.map(log => (
                                 <tr key={log.id}>

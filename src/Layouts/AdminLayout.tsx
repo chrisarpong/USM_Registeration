@@ -5,6 +5,7 @@ import {
     LayoutDashboard,
     UserPlus,
     FileText,
+    CalendarDays,
     LogOut,
     Search,
     Bell,
@@ -44,6 +45,7 @@ export default function AdminLayout() {
         { path: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
         { path: '/admin/register', icon: UserPlus, label: 'Register Member' },
         { path: '/admin/reports', icon: FileText, label: 'Reports' },
+        { path: '/admin/events', icon: CalendarDays, label: 'Events' },
     ]
 
     const pageTitle = navItems.find(item => item.path === location.pathname)?.label || 'Admin Panel'

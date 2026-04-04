@@ -1,15 +1,36 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FileDown, Calendar, Filter } from 'lucide-react'
+import { FileDown, Calendar, Filter, CalendarDays } from 'lucide-react'
+import type { USMEvent } from '../types'
+import { formatEventDate } from '../hooks/useEvents'
 
 export default function AdminReports() {
     const [startDate, setStartDate] = useState('')
     const [endDate, setEndDate] = useState('')
     const [statusFilter, setStatusFilter] = useState('All')
+    const [eventFilter, setEventFilter] = useState('')
     const [loading, setLoading] = useState(false)
     const [reportData, setReportData] = useState<any[]>([])
     const [generated, setGenerated] = useState(false)
+    const [events, setEvents] = useState<USMEvent[]>([])
+
+    // Fetch events on mount
+    useEffect(() => {
+        supabase
+            .from('events')
+            .select('*')
+            .order('date', { ascending: false })
+            .then(({ data }) => {
+                if (data) {
+                    const typedEvents = data as USMEvent[]
+                    setEvents(typedEvents)
+                    // Default to active event
+                    const active = typedEvents.find(e => e.is_active)
+                    if (active) setEventFilter(active.id)
+                }
+            })
+    }, [])
 
     const generateReport = async () => {
         setLoading(true)
@@ -20,8 +41,13 @@ export default function AdminReports() {
             .select('*')
             .order('created_at', { ascending: false })
 
+        // Event filter
+        if (eventFilter) {
+            query = query.eq('event_id', eventFilter)
+        }
+
         if (startDate) query = query.gte('created_at', startDate)
-        if (endDate) query = query.lte('created_at', endDate + 'T23:59:59') // End of day
+        if (endDate) query = query.lte('created_at', endDate + 'T23:59:59')
 
         if (statusFilter !== 'All') {
             if (statusFilter === 'Members') query = query.eq('status', 'Member')
@@ -43,14 +69,12 @@ export default function AdminReports() {
     const downloadCSV = () => {
         if (reportData.length === 0) return alert('No data to export')
 
-        // Define headers
         const headers = ['Time', 'Full Name', 'Phone', 'Status', 'Branch', 'Location', 'Invited By']
 
-        // Convert data to CSV rows
         const rows = reportData.map(row => {
             return [
                 new Date(row.created_at).toLocaleString(),
-                `"${row.full_name}"`, // Quote to handle commas in names
+                `"${row.full_name}"`,
                 `"${row.phone_number}"`,
                 row.status,
                 row.branch,
@@ -61,12 +85,14 @@ export default function AdminReports() {
 
         const csvContent = [headers.join(','), ...rows].join('\n')
 
-        // Create Blob and Download
+        const selectedEvent = events.find(e => e.id === eventFilter)
+        const eventLabel = selectedEvent ? formatEventDate(selectedEvent.date) : 'All_Events'
+
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
         const url = URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.href = url
-        link.setAttribute('download', `attendance_report_${new Date().toISOString().split('T')[0]}.csv`)
+        link.setAttribute('download', `USM_${eventLabel}_report_${new Date().toISOString().split('T')[0]}.csv`)
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
@@ -82,9 +108,28 @@ export default function AdminReports() {
                 <div className="form-panel" style={{ border: 'none', background: 'transparent', padding: '40px' }}>
 
                     <h2 style={{ fontSize: '24px', marginBottom: '8px', color: 'white' }}>Generate Reports</h2>
-                    <p className="form-subtitle">Select date range and filters to export attendance data.</p>
+                    <p className="form-subtitle">Select event, date range, and filters to export attendance data.</p>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '32px' }}>
+
+                        {/* Event Filter */}
+                        <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                            <label><CalendarDays size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px' }} />Event</label>
+                            <div className="input-wrapper">
+                                <CalendarDays size={18} className="input-icon" />
+                                <select
+                                    value={eventFilter}
+                                    onChange={(e) => setEventFilter(e.target.value)}
+                                >
+                                    <option value="">All Events</option>
+                                    {events.map(ev => (
+                                        <option key={ev.id} value={ev.id}>
+                                            {formatEventDate(ev.date)} — {ev.theme} {ev.is_active ? '(Active)' : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
 
                         {/* Date Filters */}
                         <div className="form-group">

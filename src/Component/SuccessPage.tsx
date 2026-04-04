@@ -9,8 +9,15 @@ export default function SuccessPage() {
     const name = location.state?.name || 'there';
     const registrationId = location.state?.registrationId || 'USM-GUEST';
 
+    // Dynamic event data passed from Registration page
+    const eventData = location.state?.event || {};
+    const eventDate = eventData.date || '—';
+    const eventTime = eventData.time || '10:00 AM';
+    const eventTheme = eventData.theme || 'TBD';
+    const eventVenue = eventData.venue || 'Venue TBD';
+
     const shareOnWhatsApp = () => {
-        const message = `Hey! I just registered for the Unending Spirit Meeting at Gospel Waves Citadel. Join me on March 28th! 🕊️✨\n\nRegister here: https://usm-registeration.vercel.app`;
+        const message = `Hey! I just registered for the Unending Spirit Meeting. Join me on ${eventDate}! 🕊️✨\n\nRegister here: https://usm-registeration.vercel.app`;
         window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
     };
 
@@ -118,7 +125,7 @@ export default function SuccessPage() {
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', justifyContent: 'center' }}>
                         <Sparkles size={20} color="#a855f7" />
-                        <h3 style={{ color: '#a855f7', fontSize: '18px', fontWeight: 600, margin: 0 }}>Theme: Gift of Healing</h3>
+                        <h3 style={{ color: '#a855f7', fontSize: '18px', fontWeight: 600, margin: 0 }}>Theme: {eventTheme}</h3>
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -128,7 +135,7 @@ export default function SuccessPage() {
                             </div>
                             <div>
                                 <h4 style={{ margin: '0 0 4px 0', fontSize: '13px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px' }}>Date</h4>
-                                <p style={{ margin: 0, color: 'white', fontSize: '16px', fontWeight: 500 }}>28th March</p>
+                                <p style={{ margin: 0, color: 'white', fontSize: '16px', fontWeight: 500 }}>{eventDate}</p>
                             </div>
                         </div>
 
@@ -138,7 +145,7 @@ export default function SuccessPage() {
                             </div>
                             <div>
                                 <h4 style={{ margin: '0 0 4px 0', fontSize: '13px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px' }}>Time</h4>
-                                <p style={{ margin: 0, color: 'white', fontSize: '16px', fontWeight: 500 }}>10:00 AM Prompt</p>
+                                <p style={{ margin: 0, color: 'white', fontSize: '16px', fontWeight: 500 }}>{eventTime} Prompt</p>
                             </div>
                         </div>
 
@@ -149,7 +156,7 @@ export default function SuccessPage() {
                             <div>
                                 <h4 style={{ margin: '0 0 4px 0', fontSize: '13px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px' }}>Venue Location</h4>
                                 <p style={{ margin: 0, color: 'white', fontSize: '15px', lineHeight: 1.5 }}>
-                                    3rd floor ORA black star building, Opposite Ofankor Shell filling station
+                                    {eventVenue}
                                 </p>
                             </div>
                         </div>

@@ -7,16 +7,29 @@ type ChartData = {
     count: number
 }
 
-export default function RegistrationChart() {
+type Props = {
+    eventId?: string
+}
+
+export default function RegistrationChart({ eventId }: Props) {
     const [data, setData] = useState<ChartData[]>([])
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         const fetchChartData = async () => {
-            const { data: logs, error } = await supabase
+            setLoading(true)
+
+            let query = supabase
                 .from('attendance_logs')
                 .select('created_at')
                 .order('created_at', { ascending: true })
+
+            // Filter by event if provided
+            if (eventId) {
+                query = query.eq('event_id', eventId)
+            }
+
+            const { data: logs, error } = await query
 
             if (error) {
                 console.error('Error fetching chart data:', error)
@@ -38,14 +51,13 @@ export default function RegistrationChart() {
                     count
                 }))
 
-                // Take last 7 days or just show all? Show all for now, maybe slice if too many.
                 setData(chartData)
             }
             setLoading(false)
         }
 
         fetchChartData()
-    }, [])
+    }, [eventId])
 
     if (loading) return <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'gray' }}>Loading chart...</div>
     if (data.length === 0) return null

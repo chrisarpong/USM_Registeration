@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { useEffect, useState } from 'react'
-import { supabase } from './supabaseClient' // Fixed path: ./ not ../
+import { supabase } from './supabaseClient'
 import Registration from './Component/Registration'
 import SuccessPage from './Component/SuccessPage'
 import AdminLogin from './Component/AdminLogin'
@@ -9,6 +9,7 @@ import AdminDashboard from './Component/AdminDashboard'
 import AdminLayout from './Layouts/AdminLayout'
 import AdminRegister from './Component/AdminRegister'
 import AdminReports from './Component/AdminReports'
+import EventManagement from './Component/EventManagement'
 import type { Session } from '@supabase/supabase-js'
 
 // Protected Route Component
@@ -29,7 +30,7 @@ const ProtectedRoute = () => {
     return () => subscription.unsubscribe()
   }, [])
 
-  if (loading) return null // Or a spinner
+  if (loading) return null
   if (!authenticated) return <Navigate to="/login" replace />
 
   return <Outlet />
@@ -53,6 +54,7 @@ function App() {
               <Route index element={<AdminDashboard />} />
               <Route path="register" element={<AdminRegister />} />
               <Route path="reports" element={<AdminReports />} />
+              <Route path="events" element={<EventManagement />} />
             </Route>
           </Route>
 

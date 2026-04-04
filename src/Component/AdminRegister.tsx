@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'react-hot-toast'
 import { supabase } from '../supabaseClient'
+import { useActiveEvent, formatEventDate } from '../hooks/useEvents'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
     Phone,
@@ -21,6 +22,8 @@ type Branch = {
 type Status = 'Member' | 'Guest' | 'First Timer'
 
 export default function AdminRegister() {
+    const { event } = useActiveEvent()
+
     // Form state
     const [status, setStatus] = useState<Status>('Member')
     const [phone, setPhone] = useState('')
@@ -99,6 +102,7 @@ export default function AdminRegister() {
                     branch: finalBranch,
                     location: location.trim(),
                     invited_by: showInvitedBy ? invitee.trim() || null : null,
+                    event_id: event?.id || null,
                 }
             ])
         setLoading(false)
@@ -110,7 +114,12 @@ export default function AdminRegister() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     name: fullName.trim(),
-                    email: email.trim()
+                    email: email.trim(),
+                    eventDate: event ? formatEventDate(event.date) : undefined,
+                    eventTime: event?.time,
+                    eventTheme: event?.theme,
+                    eventVenue: event?.venue,
+                    flyerUrl: event?.flyer_url,
                 })
             }).catch(err => console.error('Failed to send email:', err))
         }

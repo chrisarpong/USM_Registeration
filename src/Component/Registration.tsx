@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
 import { supabase } from '../supabaseClient'
+import { useActiveEvent, formatEventDate } from '../hooks/useEvents'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
     Calendar,
@@ -17,7 +18,7 @@ import {
     Sparkles,
 } from 'lucide-react'
 
-import flyerImage from '../assets/USM.jpeg'
+import flyerFallback from '../assets/USM.jpeg'
 import logo from '../assets/logo.png'
 
 type Branch = {
@@ -29,6 +30,8 @@ type Status = 'Member' | 'Guest' | 'First Timer'
 
 export default function Registration() {
     const navigate = useNavigate()
+    const { event, loading: eventLoading, error: eventError } = useActiveEvent()
+
     // Form state
     const [status, setStatus] = useState<Status>('Member')
     const [phone, setPhone] = useState('')
@@ -88,9 +91,55 @@ export default function Registration() {
         setInvitee('')
     }
 
+    // Derived event values with fallbacks
+    const eventDate = event ? formatEventDate(event.date) : '—'
+    const eventTime = event?.time || '10:00 AM'
+    const eventTheme = event?.theme || 'TBD'
+    const eventVenue = event?.venue || 'Venue TBD'
+    const eventMapQuery = event?.map_query || 'Chatime+Ghana+Ofankor'
+    const eventDescription = event?.description || 'The Unending Spirit meeting returns. Get ready🔥'
+    const eventFlyer = event?.flyer_url || flyerFallback
+    const registrationOpen = event?.is_registration_open ?? true
+
+    // Show loading state while event data is being fetched
+    if (eventLoading) {
+        return (
+            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    style={{ textAlign: 'center', color: 'rgba(255,255,255,0.6)' }}
+                >
+                    <img src={logo} alt="USM Logo" style={{ height: '80px', margin: '0 auto 20px', display: 'block', filter: 'drop-shadow(0 0 16px rgba(168, 85, 247, 0.6))' }} />
+                    <p>Loading event details...</p>
+                </motion.div>
+            </div>
+        )
+    }
+
+    // Show error state if no active event
+    if (eventError || !event) {
+        return (
+            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    style={{ textAlign: 'center', color: 'rgba(255,255,255,0.6)', maxWidth: '400px', padding: '40px' }}
+                >
+                    <img src={logo} alt="USM Logo" style={{ height: '80px', margin: '0 auto 20px', display: 'block', filter: 'drop-shadow(0 0 16px rgba(168, 85, 247, 0.6))' }} />
+                    <h2 style={{ color: 'white', marginBottom: '12px', fontFamily: 'Outfit, sans-serif' }}>No Active Event</h2>
+                    <p style={{ lineHeight: 1.6 }}>Registration is not currently open. Check back later for the next Unending Spirit Meeting!</p>
+                    <div style={{ marginTop: '24px' }}>
+                        <a href="/login" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.2)', textDecoration: 'none' }}>Admin Login</a>
+                    </div>
+                </motion.div>
+            </div>
+        )
+    }
 
 
     const handleRegister = async () => {
+        if (!registrationOpen) return toast.error('Registration is currently closed for this event')
         if (!fullName.trim()) return toast.error('Please enter your full name')
         if (!phone.trim()) return toast.error('Please enter your phone number')
         if (!email.trim()) return toast.error('Please enter your email address')
@@ -114,6 +163,7 @@ export default function Registration() {
                     branch: finalBranch,
                     location: location.trim(),
                     invited_by: showInvitedBy ? invitee.trim() || null : null,
+                    event_id: event.id,
                 }
             ])
             .select()
@@ -126,20 +176,36 @@ export default function Registration() {
             return
         }
 
-        // Trigger Email Notification
+        // Trigger Email Notification with dynamic event details
         fetch('/api/send-email', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 name: fullName.trim(),
-                email: email.trim()
+                email: email.trim(),
+                eventDate: eventDate,
+                eventTime: eventTime,
+                eventTheme: eventTheme,
+                eventVenue: eventVenue,
+                flyerUrl: event.flyer_url,
             })
         }).catch(err => console.error('Failed to send email:', err))
 
         toast.success('Registration successful! See you soon! 🎉', { duration: 5000 })
         const registrationId = data?.[0]?.id
         resetForm()
-        navigate('/success', { state: { name: fullName.trim(), registrationId } })
+        navigate('/success', {
+            state: {
+                name: fullName.trim(),
+                registrationId,
+                event: {
+                    date: eventDate,
+                    time: eventTime,
+                    theme: eventTheme,
+                    venue: eventVenue,
+                }
+            }
+        })
     }
 
     return (
@@ -157,7 +223,7 @@ export default function Registration() {
                     <div style={{
                         position: 'absolute',
                         inset: 0,
-                        backgroundImage: `url(${flyerImage})`,
+                        backgroundImage: `url(${eventFlyer})`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                     }} />
@@ -172,7 +238,7 @@ export default function Registration() {
                     <div style={{ position: 'absolute', bottom: '20px', left: 'clamp(20px, 5vw, 32px)' }}>
                         <div className="event-badge">
                             <Calendar size={14} />
-                            28th March
+                            {eventDate}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '16px' }}>
                             <img src={logo} alt="Church Logo" style={{ height: 'clamp(40px, 6vw, 56px)', width: 'auto', filter: 'drop-shadow(0 0 15px rgba(255, 255, 255, 0.5))' }} />
@@ -195,11 +261,9 @@ export default function Registration() {
                             color: 'rgba(255,255,255,0.8)',
                             fontSize: '15px'
                         }}>
-                            "We know you waited<br />
-                            We know you anticipated<br />
-                            Well, now it's here again.<br />
-                            The Unending Spirit meeting returns.<br />
-                            Get ready🔥"
+                            {eventDescription.split('\n').map((line, i) => (
+                                <span key={i}>{line}<br /></span>
+                            ))}
                         </div>
 
                         <div className="info-details">
@@ -208,7 +272,7 @@ export default function Registration() {
                                     <Clock size={16} />
                                 </div>
                                 <div className="info-detail-text">
-                                    <h4>10:00 AM</h4>
+                                    <h4>{eventTime}</h4>
                                     <p>Doors open early</p>
                                 </div>
                             </div>
@@ -219,7 +283,7 @@ export default function Registration() {
                                 </div>
                                 <div className="info-detail-text">
                                     <h4>Theme</h4>
-                                    <p>The Gift of Healing</p>
+                                    <p>{eventTheme}</p>
                                 </div>
                             </div>
 
@@ -228,8 +292,8 @@ export default function Registration() {
                                     <MapPin size={16} />
                                 </div>
                                 <div className="info-detail-text">
-                                    <h4>New Location</h4>
-                                    <p>3rd floor ORA black star building<br />Opposite Ofankor Shell filling station</p>
+                                    <h4>Venue</h4>
+                                    <p>{eventVenue}</p>
                                 </div>
                             </div>
 
@@ -248,9 +312,9 @@ export default function Registration() {
                                     scrolling="no"
                                     marginHeight={0}
                                     marginWidth={0}
-                                    src="https://maps.google.com/maps?q=Chatime+Ghana+Ofankor&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                                    src={`https://maps.google.com/maps?q=${eventMapQuery}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
                                     style={{ border: 0 }}
-                                    title="Map of Ofankor Location"
+                                    title="Map of Event Location"
                                 ></iframe>
                             </div>
                         </div>
@@ -266,9 +330,22 @@ export default function Registration() {
                     transition={{ delay: 0.3, duration: 0.5 }}
                 >
                     <h2>Register Now</h2>
-                    <p className="form-subtitle">Fill in your details to confirm attendance</p>
+                    <p className="form-subtitle">
+                        {registrationOpen
+                            ? 'Fill in your details to confirm attendance'
+                            : 'Registration for this event is currently closed'
+                        }
+                    </p>
 
-                    {/* Success Message removed (handled by Toast) */}
+                    {!registrationOpen && (
+                        <div style={{
+                            padding: '16px', borderRadius: '12px', marginBottom: '24px',
+                            background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)',
+                            color: '#f87171', fontSize: '14px', fontWeight: 500, textAlign: 'center'
+                        }}>
+                            Registration is closed. Check back later!
+                        </div>
+                    )}
 
                     {/* Status & Phone */}
                     <div className="form-row">
@@ -279,6 +356,7 @@ export default function Registration() {
                                 <select
                                     value={status}
                                     onChange={(e) => setStatus(e.target.value as Status)}
+                                    disabled={!registrationOpen}
                                 >
                                     <option value="Member">Member</option>
                                     <option value="Guest">Guest</option>
@@ -296,6 +374,7 @@ export default function Registration() {
                                     placeholder="054 123 4567"
                                     value={phone}
                                     onChange={(e) => setPhone(e.target.value)}
+                                    disabled={!registrationOpen}
                                 />
                             </div>
                         </div>
@@ -311,6 +390,7 @@ export default function Registration() {
                                 placeholder="Enter your full name"
                                 value={fullName}
                                 onChange={(e) => setFullName(e.target.value)}
+                                disabled={!registrationOpen}
                             />
                         </div>
                     </div>
@@ -325,6 +405,7 @@ export default function Registration() {
                                 placeholder="Enter your email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
+                                disabled={!registrationOpen}
                             />
                         </div>
                     </div>
@@ -345,6 +426,7 @@ export default function Registration() {
                                     <select
                                         value={branch}
                                         onChange={(e) => setBranch(e.target.value)}
+                                        disabled={!registrationOpen}
                                     >
                                         {branches.length === 0 && (
                                             <option disabled>Loading branches...</option>
@@ -370,6 +452,7 @@ export default function Registration() {
                                 placeholder="Your location (e.g., Kasoa, Accra)"
                                 value={location}
                                 onChange={(e) => setLocation(e.target.value)}
+                                disabled={!registrationOpen}
                             />
                         </div>
                     </div>
@@ -392,6 +475,7 @@ export default function Registration() {
                                         placeholder="Who invited you?"
                                         value={invitee}
                                         onChange={(e) => setInvitee(e.target.value)}
+                                        disabled={!registrationOpen}
                                     />
                                 </div>
                             </motion.div>
@@ -399,20 +483,23 @@ export default function Registration() {
                     </AnimatePresence>
 
                     <motion.button
-                        whileHover={!loading ? { scale: 1.02, boxShadow: '0 12px 40px rgba(99, 102, 241, 0.6)' } : {}}
-                        whileTap={!loading ? { scale: 0.98 } : {}}
+                        whileHover={!loading && registrationOpen ? { scale: 1.02, boxShadow: '0 12px 40px rgba(99, 102, 241, 0.6)' } : {}}
+                        whileTap={!loading && registrationOpen ? { scale: 0.98 } : {}}
                         className="btn-submit"
                         onClick={handleRegister}
-                        disabled={loading}
+                        disabled={loading || !registrationOpen}
                         style={{
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center',
                             gap: '8px',
-                            background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%)',
-                            boxShadow: '0 8px 32px rgba(99, 102, 241, 0.4)',
+                            background: registrationOpen
+                                ? 'linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%)'
+                                : 'rgba(255,255,255,0.1)',
+                            boxShadow: registrationOpen ? '0 8px 32px rgba(99, 102, 241, 0.4)' : 'none',
                             border: '1px solid rgba(255,255,255,0.2)',
-                            textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                            textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                            cursor: registrationOpen ? 'pointer' : 'not-allowed'
                         }}
                     >
                         {loading ? (
