@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FileDown, Calendar, Filter, CalendarDays } from 'lucide-react'
+import { toast } from 'react-hot-toast'
 import type { USMEvent } from '../types'
 import { formatEventDate } from '../hooks/useEvents'
 
@@ -58,16 +59,20 @@ export default function AdminReports() {
         const { data, error } = await query
 
         if (error) {
-            alert('Error generating report: ' + error.message)
+            toast.error('Error generating report: ' + error.message)
         } else {
             setReportData(data || [])
             setGenerated(true)
+            toast.success('Report generated successfully')
         }
         setLoading(false)
     }
 
     const downloadCSV = () => {
-        if (reportData.length === 0) return alert('No data to export')
+        if (reportData.length === 0) {
+            toast.error('No data to export')
+            return
+        }
 
         const headers = ['Time', 'Full Name', 'Phone', 'Status', 'Branch', 'Location', 'Invited By']
 

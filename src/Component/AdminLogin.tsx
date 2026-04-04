@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Mail, Lock, ChevronRight, ArrowLeft } from 'lucide-react'
+import { toast } from 'react-hot-toast'
 import logo from '../assets/logo.png'
 
 export default function AdminLogin() {
@@ -21,7 +22,7 @@ export default function AdminLogin() {
         })
 
         if (error) {
-            alert(error.message)
+            toast.error(error.message)
             setLoading(false)
         } else {
             navigate('/admin')

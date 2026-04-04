@@ -20,6 +20,7 @@ import {
 
 import flyerFallback from '../assets/USM.jpeg'
 import logo from '../assets/logo.png'
+import { RegistrationSkeleton } from './Skeletons'
 
 type Branch = {
     id: string
@@ -44,6 +45,7 @@ export default function Registration() {
     // UI state
     const [branches, setBranches] = useState<Branch[]>([])
     const [loading, setLoading] = useState(false)
+    const [registrationCount, setRegistrationCount] = useState(0)
 
     // Conditional visibility
     const showBranch = status === 'Member'
@@ -70,6 +72,36 @@ export default function Registration() {
 
         fetchBranches()
     }, [])
+
+    // Real-time counter
+    useEffect(() => {
+        if (!event?.id) return
+
+        const fetchCount = async () => {
+            const { count } = await supabase
+                .from('attendance_logs')
+                .select('*', { count: 'exact', head: true })
+                .eq('event_id', event.id)
+            if (count !== null) setRegistrationCount(count)
+        }
+
+        fetchCount()
+
+        const channel = supabase
+            .channel('public:attendance_logs:counter')
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'attendance_logs', filter: `event_id=eq.${event.id}` },
+                () => {
+                    setRegistrationCount(prev => prev + 1)
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [event?.id])
 
     // Clear conditional fields when status changes
     useEffect(() => {
@@ -103,18 +135,7 @@ export default function Registration() {
 
     // Show loading state while event data is being fetched
     if (eventLoading) {
-        return (
-            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    style={{ textAlign: 'center', color: 'rgba(255,255,255,0.6)' }}
-                >
-                    <img src={logo} alt="USM Logo" style={{ height: '80px', margin: '0 auto 20px', display: 'block', filter: 'drop-shadow(0 0 16px rgba(168, 85, 247, 0.6))' }} />
-                    <p>Loading event details...</p>
-                </motion.div>
-            </div>
-        )
+        return <RegistrationSkeleton />
     }
 
     // Show error state if no active event
@@ -344,6 +365,27 @@ export default function Registration() {
                             color: '#f87171', fontSize: '14px', fontWeight: 500, textAlign: 'center'
                         }}>
                             Registration is closed. Check back later!
+                        </div>
+                    )}
+
+                    {/* Live Counter */}
+                    {registrationCount > 0 && registrationOpen && (
+                        <div style={{ 
+                            display: 'inline-flex', alignItems: 'center', gap: '8px', 
+                            background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', 
+                            padding: '6px 14px', borderRadius: '20px', 
+                            fontSize: '13px', fontWeight: 600, 
+                            marginBottom: '24px', border: '1px solid rgba(239, 68, 68, 0.2)' 
+                        }}>
+                            <span style={{ position: 'relative', display: 'flex', width: '8px', height: '8px' }}>
+                                <span style={{ 
+                                    animation: 'ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite', 
+                                    position: 'absolute', display: 'inline-flex', height: '100%', width: '100%', 
+                                    borderRadius: '50%', backgroundColor: '#ef4444', opacity: 0.75 
+                                }}></span>
+                                <span style={{ position: 'relative', display: 'inline-flex', borderRadius: '50%', height: '8px', width: '8px', backgroundColor: '#ef4444' }}></span>
+                            </span>
+                            🔥 {registrationCount} {registrationCount === 1 ? 'person has' : 'people have'} registered
                         </div>
                     )}
 

@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast'
 import EditGuestModal from './EditGuestModal'
 import RegistrationChart from './RegistrationChart'
 import QRScannerModal from './QRScannerModal'
+import { StatsGridSkeleton, TableSkeleton } from './Skeletons'
 import type { USMEvent } from '../types'
 import { formatEventDate } from '../hooks/useEvents'
 
@@ -371,43 +372,54 @@ export default function AdminDashboard() {
             </div>
 
             {/* Stats Row */}
-            <div className="stats-grid">
-                <div className="stat-card">
-                    <div className="icon" style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa' }}><Users size={24} /></div>
-                    <div>
-                        <h4>Total Registered</h4>
-                        <h1>{stats.total}</h1>
+            {loading && page === 0 ? (
+                <StatsGridSkeleton />
+            ) : (
+                <div className="stats-grid">
+                    <div className="stat-card">
+                        <div className="icon" style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa' }}><Users size={24} /></div>
+                        <div>
+                            <h4>Total Registered</h4>
+                            <h1>{stats.total}</h1>
+                        </div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="icon" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34d399' }}><UserCheck size={24} /></div>
+                        <div>
+                            <h4>Members</h4>
+                            <h1>{stats.members}</h1>
+                        </div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="icon" style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24' }}><UserPlus size={24} /></div>
+                        <div>
+                            <h4>Guests</h4>
+                            <h1>{stats.guests}</h1>
+                        </div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="icon" style={{ background: 'rgba(168, 85, 247, 0.2)', color: '#a855f7' }}><Sparkles size={24} /></div>
+                        <div>
+                            <h4>First Timers</h4>
+                            <h1>{stats.firstTimers}</h1>
+                        </div>
+                    </div>
+                    <div className="stat-card" style={{ border: '1px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.05)' }}>
+                        <div className="icon" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#10b981' }}><CheckCircle size={24} /></div>
+                        <div>
+                            <h4 style={{ color: '#10b981' }}>Checked In</h4>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                                <h1 style={{ color: '#10b981', margin: 0 }}>{stats.checkedIn}</h1>
+                                {stats.total > 0 && (
+                                    <span style={{ color: 'rgba(16, 185, 129, 0.8)', fontSize: '14px', fontWeight: 600 }}>
+                                        ({Math.round((stats.checkedIn / stats.total) * 100)}%)
+                                    </span>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div className="stat-card">
-                    <div className="icon" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34d399' }}><UserCheck size={24} /></div>
-                    <div>
-                        <h4>Members</h4>
-                        <h1>{stats.members}</h1>
-                    </div>
-                </div>
-                <div className="stat-card">
-                    <div className="icon" style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24' }}><UserPlus size={24} /></div>
-                    <div>
-                        <h4>Guests</h4>
-                        <h1>{stats.guests}</h1>
-                    </div>
-                </div>
-                <div className="stat-card">
-                    <div className="icon" style={{ background: 'rgba(168, 85, 247, 0.2)', color: '#a855f7' }}><Sparkles size={24} /></div>
-                    <div>
-                        <h4>First Timers</h4>
-                        <h1>{stats.firstTimers}</h1>
-                    </div>
-                </div>
-                <div className="stat-card" style={{ border: '1px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.05)' }}>
-                    <div className="icon" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#10b981' }}><CheckCircle size={24} /></div>
-                    <div>
-                        <h4 style={{ color: '#10b981' }}>Checked In</h4>
-                        <h1 style={{ color: '#10b981' }}>{stats.checkedIn}</h1>
-                    </div>
-                </div>
-            </div>
+            )}
 
             {/* Registration Chart */}
             <RegistrationChart eventId={selectedEventId} />
@@ -466,31 +478,32 @@ export default function AdminDashboard() {
             </div>
 
             {/* Data Table */}
-            <div className="glass-table-container">
-                <table className="glass-table">
-                    <thead>
-                        <tr>
-                            <th>Date & Time</th>
-                            <th>Name</th>
-                            <th>Status</th>
-                            <th>Branch</th>
-                            <th>Location</th>
-                            <th>Phone</th>
-                            <th>Invited By</th>
-                            <th style={{ textAlign: 'center' }}>Check-In</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {loading && page === 0 ? (
-                            <tr><td colSpan={9} style={{ textAlign: 'center', padding: '40px' }}>Loading...</td></tr>
-                        ) : filteredLogs.length === 0 ? (
-                            <tr><td colSpan={9} style={{ textAlign: 'center', padding: '40px' }}>
-                                {searchTerm ? `No records found matching "${searchTerm}"` : 'No registrations for this event yet'}
-                            </td></tr>
-                        ) : (
-                            filteredLogs.map(log => (
-                                <tr key={log.id}>
+            {loading && page === 0 ? (
+                <TableSkeleton />
+            ) : (
+                <div className="glass-table-container">
+                    <table className="glass-table">
+                        <thead>
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>Name</th>
+                                <th>Status</th>
+                                <th>Branch</th>
+                                <th>Location</th>
+                                <th>Phone</th>
+                                <th>Invited By</th>
+                                <th style={{ textAlign: 'center' }}>Check-In</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredLogs.length === 0 ? (
+                                <tr><td colSpan={9} style={{ textAlign: 'center', padding: '40px' }}>
+                                    {searchTerm ? `No records found matching "${searchTerm}"` : 'No registrations for this event yet'}
+                                </td></tr>
+                            ) : (
+                                filteredLogs.map(log => (
+                                    <tr key={log.id}>
                                     <td style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px' }}>
                                         <div style={{ fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginBottom: '4px' }}>
                                             {new Date(log.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -583,12 +596,13 @@ export default function AdminDashboard() {
                                             </div>
                                         )}
                                     </td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-            </div>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            )}
 
             {/* Load More Button */}
             {hasMore && !loading && filteredLogs.length > 0 && (

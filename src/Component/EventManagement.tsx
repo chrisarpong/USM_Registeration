@@ -13,18 +13,19 @@ import {
     Edit2,
     X,
     Save,
-    Clock,
     MapPin,
-    Sparkles,
-    Image,
-    FileText,
-    ToggleLeft,
     ToggleRight,
     Users,
     CheckCircle,
     Upload,
     Loader2,
-    Link as LinkIcon
+    Link as LinkIcon,
+    Copy,
+    Sparkles,
+    Image,
+    FileText,
+    ToggleLeft,
+    Clock
 } from 'lucide-react'
 
 type EventFormData = {
@@ -140,6 +141,24 @@ export default function EventManagement() {
             is_registration_open: event.is_registration_open,
         })
         setIsModalOpen(true)
+    }
+
+    const handleDuplicate = (event: USMEvent) => {
+        setEditingEvent(null)
+        setFormData({
+            title: event.title,
+            date: '', 
+            time: event.time,
+            theme: '', 
+            venue: event.venue,
+            venue_address: event.venue_address || '',
+            map_query: event.map_query || '',
+            description: event.description || '',
+            flyer_url: event.flyer_url || '',
+            is_registration_open: true,
+        })
+        setIsModalOpen(true)
+        toast.success('Event duplicated. Please set a new Date and Theme.')
     }
 
     const handleSave = async () => {
@@ -479,6 +498,16 @@ export default function EventManagement() {
                                             style={{ padding: '8px', background: 'rgba(96, 165, 250, 0.1)', border: '1px solid rgba(96, 165, 250, 0.2)' }}
                                         >
                                             <Edit2 size={16} color="#60a5fa" />
+                                        </button>
+
+                                        {/* Duplicate */}
+                                        <button
+                                            onClick={() => handleDuplicate(event)}
+                                            className="btn-icon"
+                                            title="Duplicate Event"
+                                            style={{ padding: '8px', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.2)' }}
+                                        >
+                                            <Copy size={16} color="#fbbf24" />
                                         </button>
 
                                         {/* Delete */}
