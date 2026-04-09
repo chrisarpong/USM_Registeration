@@ -45,7 +45,6 @@ export default function Registration() {
     // UI state
     const [branches, setBranches] = useState<Branch[]>([])
     const [loading, setLoading] = useState(false)
-    const [registrationCount, setRegistrationCount] = useState(0)
 
     // Conditional visibility
     const showBranch = status === 'Member'
@@ -73,35 +72,6 @@ export default function Registration() {
         fetchBranches()
     }, [])
 
-    // Real-time counter
-    useEffect(() => {
-        if (!event?.id) return
-
-        const fetchCount = async () => {
-            const { count } = await supabase
-                .from('attendance_logs')
-                .select('*', { count: 'exact', head: true })
-                .eq('event_id', event.id)
-            if (count !== null) setRegistrationCount(count)
-        }
-
-        fetchCount()
-
-        const channel = supabase
-            .channel('public:attendance_logs:counter')
-            .on(
-                'postgres_changes',
-                { event: 'INSERT', schema: 'public', table: 'attendance_logs', filter: `event_id=eq.${event.id}` },
-                () => {
-                    setRegistrationCount(prev => prev + 1)
-                }
-            )
-            .subscribe()
-
-        return () => {
-            supabase.removeChannel(channel)
-        }
-    }, [event?.id])
 
     // Clear conditional fields when status changes
     useEffect(() => {
