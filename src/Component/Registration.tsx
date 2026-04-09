@@ -368,27 +368,6 @@ export default function Registration() {
                         </div>
                     )}
 
-                    {/* Live Counter */}
-                    {registrationCount > 0 && registrationOpen && (
-                        <div style={{ 
-                            display: 'inline-flex', alignItems: 'center', gap: '8px', 
-                            background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', 
-                            padding: '6px 14px', borderRadius: '20px', 
-                            fontSize: '13px', fontWeight: 600, 
-                            marginBottom: '24px', border: '1px solid rgba(239, 68, 68, 0.2)' 
-                        }}>
-                            <span style={{ position: 'relative', display: 'flex', width: '8px', height: '8px' }}>
-                                <span style={{ 
-                                    animation: 'ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite', 
-                                    position: 'absolute', display: 'inline-flex', height: '100%', width: '100%', 
-                                    borderRadius: '50%', backgroundColor: '#ef4444', opacity: 0.75 
-                                }}></span>
-                                <span style={{ position: 'relative', display: 'inline-flex', borderRadius: '50%', height: '8px', width: '8px', backgroundColor: '#ef4444' }}></span>
-                            </span>
-                            🔥 {registrationCount} {registrationCount === 1 ? 'person has' : 'people have'} registered
-                        </div>
-                    )}
-
                     {/* Status & Phone */}
                     <div className="form-row">
                         <div className="form-group">
