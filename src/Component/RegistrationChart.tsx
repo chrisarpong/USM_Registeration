@@ -1,65 +1,35 @@
-import { useState, useEffect } from 'react'
+import { useMemo } from 'react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { supabase } from '../supabaseClient'
-
-type ChartData = {
-    date: string
-    count: number
-}
+import { useQuery } from "convex/react"
+import { api } from "../../convex/_generated/api"
+import type { Id } from "../../convex/_generated/dataModel"
 
 type Props = {
     eventId?: string
 }
 
 export default function RegistrationChart({ eventId }: Props) {
-    const [data, setData] = useState<ChartData[]>([])
-    const [loading, setLoading] = useState(true)
+    const logs = useQuery(api.attendanceLogs.getLogsByEvent, 
+        eventId ? { event_id: eventId as Id<"events"> } : "skip"
+    )
 
-    useEffect(() => {
-        const fetchChartData = async () => {
-            setLoading(true)
+    const data = useMemo(() => {
+        if (!logs) return []
 
-            let query = supabase
-                .from('attendance_logs')
-                .select('created_at')
-                .order('created_at', { ascending: true })
+        // Group by date
+        const grouped = logs.reduce((acc: Record<string, number>, log: any) => {
+            const date = new Date(log.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
+            acc[date] = (acc[date] || 0) + 1
+            return acc
+        }, {})
 
-            // Filter by event if provided
-            if (eventId) {
-                query = query.eq('event_id', eventId)
-            }
+        // Convert to array
+        return Object.entries(grouped)
+            .map(([date, count]) => ({ date, count }))
+            .reverse() // Reverse to show chronological order since our query returns descending
+    }, [logs])
 
-            const { data: logs, error } = await query
-
-            if (error) {
-                console.error('Error fetching chart data:', error)
-                setLoading(false)
-                return
-            }
-
-            if (logs) {
-                // Group by date
-                const grouped = logs.reduce((acc: Record<string, number>, log) => {
-                    const date = new Date(log.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
-                    acc[date] = (acc[date] || 0) + 1
-                    return acc
-                }, {})
-
-                // Convert to array
-                const chartData = Object.entries(grouped).map(([date, count]) => ({
-                    date,
-                    count
-                }))
-
-                setData(chartData)
-            }
-            setLoading(false)
-        }
-
-        fetchChartData()
-    }, [eventId])
-
-    if (loading) return <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'gray' }}>Loading chart...</div>
+    if (logs === undefined) return <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'gray' }}>Loading chart...</div>
     if (data.length === 0) return null
 
     return (

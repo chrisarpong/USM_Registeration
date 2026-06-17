@@ -1,19 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom'
-import { supabase } from '../supabaseClient'
+import { useAuthActions } from "@convex-dev/auth/react"
 import {
-    LayoutDashboard,
-    UserPlus,
-    FileText,
-    CalendarDays,
-    LogOut,
-    Search,
-    Bell,
-    Menu,
-    X
+    LayoutDashboard, UserPlus, FileText, CalendarDays,
+    LogOut, Search, Bell, Menu, X
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import adminBgImage from '../assets/11.JPEG'
 import logo from '../assets/logo.png'
 
 export default function AdminLayout() {
@@ -30,14 +22,15 @@ export default function AdminLayout() {
     }, [])
 
     useEffect(() => {
-        // Close sidebar on route change (mobile)
         if (isMobile) {
             setTimeout(() => setIsSidebarOpen(false), 0)
         }
     }, [location.pathname, isMobile])
 
+    const { signOut } = useAuthActions()
+
     const handleLogout = async () => {
-        await supabase.auth.signOut()
+        await signOut()
         navigate('/login')
     }
 
@@ -51,16 +44,12 @@ export default function AdminLayout() {
     const pageTitle = navItems.find(item => item.path === location.pathname)?.label || 'Admin Panel'
 
     return (
-        <div className="admin-layout" style={{
+        <div style={{
             display: 'flex',
             height: '100vh',
             width: '100vw',
             overflow: 'hidden',
-            backgroundColor: '#0f0f1a', // Fallback color
-            backgroundImage: `linear-gradient(135deg, rgba(15, 15, 26, 0.95) 0%, rgba(40, 20, 60, 0.85) 100%), url(${adminBgImage})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundAttachment: 'fixed',
+            backgroundColor: 'var(--bg-base)'
         }}>
             {/* ─── MOBILE OVERLAY ─── */}
             <AnimatePresence>
@@ -73,7 +62,7 @@ export default function AdminLayout() {
                         style={{
                             position: 'fixed',
                             inset: 0,
-                            background: 'rgba(0,0,0,0.5)',
+                            background: 'rgba(0,0,0,0.6)',
                             backdropFilter: 'blur(4px)',
                             zIndex: 40
                         }}
@@ -83,20 +72,18 @@ export default function AdminLayout() {
 
             {/* ─── SIDEBAR ─── */}
             <motion.aside
-                className={`sidebar`}
                 initial={false}
                 animate={{
                     x: isMobile ? (isSidebarOpen ? 0 : -280) : 0,
-                    width: isMobile ? 260 : (isSidebarOpen ? 260 : 0),
-                    opacity: isMobile ? 1 : (isSidebarOpen ? 1 : 0),
-                    padding: isSidebarOpen ? '24px' : '24px 0px'
+                    width: isMobile ? 260 : (isSidebarOpen ? 260 : 80),
+                    opacity: isMobile ? (isSidebarOpen ? 1 : 0) : 1,
+                    padding: isSidebarOpen ? '24px 20px' : (isMobile ? '24px 0px' : '24px 12px')
                 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                 style={{
                     height: '100%',
-                    background: 'rgba(20, 20, 35, 0.65)',
-                    backdropFilter: 'blur(20px)',
-                    borderRight: '1px solid rgba(255,255,255,0.08)',
+                    background: 'var(--bg-surface)',
+                    borderRight: '1px solid var(--border)',
                     display: 'flex',
                     flexDirection: 'column',
                     zIndex: 50,
@@ -109,11 +96,27 @@ export default function AdminLayout() {
                 }}
             >
                 {/* Logo */}
-                <div style={{ marginBottom: '40px', paddingLeft: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <img src={logo} alt="USM Logo" style={{ height: '48px', width: 'auto', filter: 'drop-shadow(0 0 12px rgba(168, 85, 247, 0.8))' }} />
-                    <h2 style={{ fontFamily: 'Outfit, sans-serif', color: 'white', fontSize: '24px', margin: 0 }}>
-                        USM <span style={{ color: '#7c5dfa' }}>Admin</span>
-                    </h2>
+                <div style={{ 
+                    marginBottom: '40px', 
+                    paddingLeft: isSidebarOpen ? '8px' : '0px', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: isSidebarOpen ? 'flex-start' : 'center',
+                    gap: '12px' 
+                }}>
+                    <img src={logo} alt="USM Logo" style={{ height: '36px', width: 'auto', flexShrink: 0 }} />
+                    <AnimatePresence>
+                        {isSidebarOpen && (
+                            <motion.h2 
+                                initial={{ opacity: 0, width: 0 }}
+                                animate={{ opacity: 1, width: 'auto' }}
+                                exit={{ opacity: 0, width: 0 }}
+                                style={{ fontFamily: 'Outfit, sans-serif', color: 'var(--text-primary)', fontSize: '20px', margin: 0, fontWeight: 700, overflow: 'hidden' }}
+                            >
+                                USM <span style={{ color: 'var(--primary-light)' }}>Admin</span>
+                            </motion.h2>
+                        )}
+                    </AnimatePresence>
                 </div>
 
                 {/* Nav Links */}
@@ -124,22 +127,36 @@ export default function AdminLayout() {
                             <Link
                                 key={item.path}
                                 to={item.path}
+                                title={!isSidebarOpen ? item.label : undefined}
                                 style={{
                                     display: 'flex',
                                     alignItems: 'center',
+                                    justifyContent: isSidebarOpen ? 'flex-start' : 'center',
                                     gap: '12px',
-                                    padding: '12px 16px',
-                                    borderRadius: '12px',
+                                    padding: isSidebarOpen ? '10px 14px' : '12px 0',
+                                    borderRadius: 'var(--radius-sm)',
                                     textDecoration: 'none',
-                                    color: isActive ? 'white' : 'rgba(255,255,255,0.6)',
-                                    background: isActive ? 'rgba(124, 93, 250, 0.15)' : 'transparent',
-                                    border: isActive ? '1px solid rgba(124, 93, 250, 0.2)' : '1px solid transparent',
+                                    color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
+                                    background: isActive ? 'var(--bg-subtle)' : 'transparent',
                                     transition: 'all 0.2s',
-                                    fontWeight: isActive ? 600 : 400
+                                    fontWeight: 500,
+                                    fontSize: '14px',
+                                    overflow: 'hidden'
                                 }}
                             >
-                                <item.icon size={20} color={isActive ? '#a78bfa' : 'currentColor'} />
-                                {item.label}
+                                <item.icon size={20} style={{ flexShrink: 0 }} />
+                                <AnimatePresence>
+                                    {isSidebarOpen && (
+                                        <motion.span
+                                            initial={{ opacity: 0, width: 0 }}
+                                            animate={{ opacity: 1, width: 'auto' }}
+                                            exit={{ opacity: 0, width: 0 }}
+                                            style={{ whiteSpace: 'nowrap' }}
+                                        >
+                                            {item.label}
+                                        </motion.span>
+                                    )}
+                                </AnimatePresence>
                             </Link>
                         )
                     })}
@@ -148,23 +165,38 @@ export default function AdminLayout() {
                 {/* Logout */}
                 <button
                     onClick={handleLogout}
+                    title={!isSidebarOpen ? "Logout" : undefined}
                     style={{
                         marginTop: 'auto',
                         display: 'flex',
                         alignItems: 'center',
+                        justifyContent: isSidebarOpen ? 'flex-start' : 'center',
                         gap: '12px',
-                        padding: '12px 16px',
-                        borderRadius: '12px',
-                        background: 'rgba(239, 68, 68, 0.1)',
-                        border: '1px solid rgba(239, 68, 68, 0.2)',
-                        color: '#f87171',
+                        padding: isSidebarOpen ? '10px 14px' : '12px 0',
+                        borderRadius: 'var(--radius-sm)',
+                        background: isSidebarOpen ? 'var(--danger-bg)' : 'transparent',
+                        border: isSidebarOpen ? '1px solid var(--danger-bg)' : 'none',
+                        color: 'var(--danger)',
                         cursor: 'pointer',
-                        fontWeight: 600,
-                        transition: 'all 0.2s'
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        transition: 'all 0.2s',
+                        overflow: 'hidden'
                     }}
                 >
-                    <LogOut size={20} />
-                    Logout
+                    <LogOut size={20} style={{ flexShrink: 0 }} />
+                    <AnimatePresence>
+                        {isSidebarOpen && (
+                            <motion.span
+                                initial={{ opacity: 0, width: 0 }}
+                                animate={{ opacity: 1, width: 'auto' }}
+                                exit={{ opacity: 0, width: 0 }}
+                                style={{ whiteSpace: 'nowrap' }}
+                            >
+                                Logout
+                            </motion.span>
+                        )}
+                    </AnimatePresence>
                 </button>
             </motion.aside>
 
@@ -173,35 +205,19 @@ export default function AdminLayout() {
 
                 {/* Topbar */}
                 <header style={{
-                    height: '80px',
-                    borderBottom: '1px solid rgba(255,255,255,0.08)',
+                    height: '72px',
+                    borderBottom: '1px solid var(--border)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: isMobile ? '0 16px' : '0 32px',
-                    background: 'rgba(20, 20, 35, 0.2)', // More transparent
-                    backdropFilter: 'blur(10px)'
+                    background: 'var(--bg-base)'
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                        <motion.button
+                        <button
                             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            style={{
-                                background: 'rgba(255, 255, 255, 0.05)',
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
-                                color: 'white',
-                                cursor: 'pointer',
-                                padding: '8px',
-                                marginLeft: '-8px',
-                                borderRadius: '12px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '40px',
-                                height: '40px',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                            }}
+                            className="btn-icon"
+                            style={{ marginLeft: '-8px', border: 'none', background: 'transparent' }}
                         >
                             <AnimatePresence mode="wait" initial={false}>
                                 <motion.div
@@ -215,18 +231,15 @@ export default function AdminLayout() {
                                     {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
                                 </motion.div>
                             </AnimatePresence>
-                        </motion.button>
-                        <h1 style={{ fontSize: '20px', fontWeight: 600, color: 'white' }}>{pageTitle}</h1>
+                        </button>
+                        <h1 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{pageTitle}</h1>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                        {/* Global Search (Only visible on Dashboard for now) */}
+                        {/* Global Search */}
                         {location.pathname === '/admin' && (
-                            <div className="search-bar" style={{
-                                position: 'relative',
-                                width: '300px'
-                            }}>
-                                <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)' }} />
+                            <div className="search-bar" style={{ position: 'relative', width: '280px' }}>
+                                <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                                 <input
                                     type="text"
                                     placeholder="Search..."
@@ -234,26 +247,27 @@ export default function AdminLayout() {
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     style={{
                                         width: '100%',
-                                        padding: '10px 10px 10px 40px',
-                                        background: 'rgba(0,0,0,0.2)',
-                                        border: '1px solid rgba(255,255,255,0.1)',
-                                        borderRadius: '10px',
-                                        color: 'white',
-                                        height: '40px' // Fix height to prevent growth
+                                        padding: '8px 12px 8px 36px',
+                                        background: 'var(--bg-surface)',
+                                        border: '1px solid var(--border)',
+                                        borderRadius: 'var(--radius-sm)',
+                                        color: 'var(--text-primary)',
+                                        height: '36px',
+                                        fontSize: '14px',
+                                        boxShadow: 'none'
                                     }}
                                 />
                             </div>
                         )}
 
-                        <div style={{ width: '40px', height: '40px', background: 'rgba(255,255,255,0.05)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Bell size={20} color="rgba(255,255,255,0.7)" />
+                        <div className="btn-icon" style={{ borderRadius: '50%' }}>
+                            <Bell size={18} />
                         </div>
                     </div>
                 </header>
 
                 {/* Content Scroll Area */}
-                <div style={{ flex: 1, overflowY: 'auto', padding: '32px' }}>
-                    {/* Pass toggleSearch down to children */}
+                <div style={{ flex: 1, overflowY: 'auto', padding: 'clamp(16px, 4vw, 32px)' }}>
                     <Outlet context={{ searchTerm }} />
                 </div>
 

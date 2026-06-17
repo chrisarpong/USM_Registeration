@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { supabase } from '../supabaseClient'
+import { useQuery } from "convex/react"
+import { api } from "../../convex/_generated/api"
 import type { USMEvent } from '../types'
 
 /**
@@ -8,31 +8,11 @@ import type { USMEvent } from '../types'
  * display event details instead of hardcoding them.
  */
 export function useActiveEvent() {
-    const [event, setEvent] = useState<USMEvent | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
+    const event = useQuery(api.events.getActiveEvent)
+    const loading = event === undefined
+    const error = event === null && !loading ? 'No active event found' : null
 
-    useEffect(() => {
-        const fetchActiveEvent = async () => {
-            const { data, error: fetchError } = await supabase
-                .from('events')
-                .select('*')
-                .eq('is_active', true)
-                .single()
-
-            if (fetchError) {
-                console.error('Error fetching active event:', fetchError)
-                setError('No active event found')
-            } else if (data) {
-                setEvent(data as USMEvent)
-            }
-            setLoading(false)
-        }
-
-        fetchActiveEvent()
-    }, [])
-
-    return { event, loading, error }
+    return { event: event as unknown as USMEvent | null, loading, error }
 }
 
 /**
@@ -40,38 +20,14 @@ export function useActiveEvent() {
  * Used by admin pages for event switching and management.
  */
 export function useAllEvents() {
-    const [events, setEvents] = useState<USMEvent[]>([])
-    const [loading, setLoading] = useState(true)
-    const [refreshKey, setRefreshKey] = useState(0)
+    const events = useQuery(api.events.getEvents)
+    const loading = events === undefined
 
-    useEffect(() => {
-        let cancelled = false
-        const controller = new AbortController()
+    // Convex queries are reactive, so manual refetch isn't necessary.
+    // Kept for backward compatibility with components using this hook.
+    const refetch = () => {}
 
-        supabase
-            .from('events')
-            .select('*')
-            .order('date', { ascending: false })
-            .then(({ data, error }) => {
-                if (cancelled) return
-                if (!error && data) {
-                    setEvents(data as USMEvent[])
-                }
-                setLoading(false)
-            })
-
-        return () => {
-            cancelled = true
-            controller.abort()
-        }
-    }, [refreshKey])
-
-    const refetch = () => {
-        setLoading(true)
-        setRefreshKey(k => k + 1)
-    }
-
-    return { events, loading, refetch }
+    return { events: events as unknown as USMEvent[] || [], loading, refetch }
 }
 
 /**

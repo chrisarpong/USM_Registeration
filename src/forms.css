@@ -1,0 +1,62 @@
+/* ─── Elegant Glass Inputs ─── */
+.glass-input-wrapper {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  height: 52px;
+  transition: all 0.3s ease;
+}
+
+.glass-input-wrapper:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.glass-input-wrapper:focus-within {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05);
+}
+
+.glass-input {
+  background: transparent !important;
+  border: none !important;
+  color: white !important;
+  width: 100%;
+  outline: none;
+  font-size: 15px;
+  font-family: inherit;
+}
+
+.glass-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* Fix autofill background in webkit */
+.glass-input:-webkit-autofill,
+.glass-input:-webkit-autofill:hover, 
+.glass-input:-webkit-autofill:focus, 
+.glass-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px rgba(0,0,0,0.5) inset !important;
+  -webkit-text-fill-color: white !important;
+  transition: background-color 5000s ease-in-out 0s;
+  border-radius: 12px;
+}
+
+.glass-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 8px;
+  display: block;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+select.glass-input option {
+  background-color: #18181b; /* dark background for dropdown options */
+  color: white;
+}

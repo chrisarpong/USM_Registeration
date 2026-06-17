@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react'
-import { supabase } from '../supabaseClient'
+import { useState, useEffect, useMemo } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Users, UserCheck, UserPlus, RefreshCw, Edit2, Trash2, Download, CheckCircle, XCircle, Sparkles, Scan, CalendarDays } from 'lucide-react'
@@ -8,55 +7,60 @@ import EditGuestModal from './EditGuestModal'
 import RegistrationChart from './RegistrationChart'
 import QRScannerModal from './QRScannerModal'
 import { StatsGridSkeleton, TableSkeleton } from './Skeletons'
-import type { USMEvent } from '../types'
 import { formatEventDate } from '../hooks/useEvents'
 
-// Types for our data
-type Log = {
-    id: number
-    created_at: string
-    full_name: string
-    phone_number: string
-    status: string
-    branch: string
-    invited_by: string | null
-    location: string | null
-    checked_in: boolean
-    event_id: string | null
-}
-
-type Stats = {
-    total: number
-    members: number
-    guests: number
-    firstTimers: number
-    checkedIn: number
-}
+import { useQuery, useMutation, usePaginatedQuery } from "convex/react"
+import { api } from "../../convex/_generated/api"
+import type { Id } from "../../convex/_generated/dataModel"
 
 export default function AdminDashboard() {
     const { searchTerm } = useOutletContext<{ searchTerm: string }>()
-    const [loading, setLoading] = useState(true)
-    const [logs, setLogs] = useState<Log[]>([])
-    const [stats, setStats] = useState<Stats>({ total: 0, members: 0, guests: 0, firstTimers: 0, checkedIn: 0 })
-    const [branchFilter, setBranchFilter] = useState('')
-    const [branches, setBranches] = useState<string[]>([])
-
-    // Event State
-    const [events, setEvents] = useState<USMEvent[]>([])
+    
+    // Convex queries
+    const events = useQuery(api.events.getEvents)
+    const branchesData = useQuery(api.branches.getBranches)
+    
     const [selectedEventId, setSelectedEventId] = useState<string>('')
+    const [branchFilter, setBranchFilter] = useState('')
+
+    // Set active event by default
+    useEffect(() => {
+        if (events && !selectedEventId) {
+            const activeEvent = events.find(e => e.is_active)
+            if (activeEvent) {
+                setSelectedEventId(activeEvent._id)
+            } else if (events.length > 0) {
+                setSelectedEventId(events[0]._id)
+            }
+        }
+    }, [events, selectedEventId])
+
+    const { results: paginatedLogs, status: paginatedStatus, loadMore } = usePaginatedQuery(
+        api.attendanceLogs.getPaginatedLogs,
+        { 
+            event_id: selectedEventId ? (selectedEventId as Id<"events">) : undefined,
+            branch: branchFilter || undefined,
+            searchTerm: searchTerm || undefined
+        },
+        { initialNumItems: 50 }
+    )
+
+    const statsQuery = useQuery(api.attendanceLogs.getLogStats, 
+        selectedEventId ? { event_id: selectedEventId as Id<"events"> } : "skip"
+    )
+
+    const toggleCheckIn = useMutation(api.attendanceLogs.toggleCheckIn)
+    const deleteLog = useMutation(api.attendanceLogs.deleteLog)
 
     // Edit Modal State
-    const [editingLog, setEditingLog] = useState<Log | null>(null)
+    const [editingLog, setEditingLog] = useState<any>(null)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [isScannerOpen, setIsScannerOpen] = useState(false)
 
-    // Pagination State
-    const [page, setPage] = useState(0)
-    const [hasMore, setHasMore] = useState(true)
-    const ITEMS_PER_PAGE = 50
+    // Premium UI State
 
     // Premium UI State
-    const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
+    const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
     // Helper for Avatar Initials
     const getInitials = (name: string) => {
@@ -66,205 +70,42 @@ export default function AdminDashboard() {
         return name.substring(0, 2).toUpperCase()
     }
 
-    // Fetch events on mount and set default to active event
-    useEffect(() => {
-        supabase
-            .from('events')
-            .select('*')
-            .order('date', { ascending: false })
-            .then(({ data }) => {
-                if (data) {
-                    const typedEvents = data as USMEvent[]
-                    setEvents(typedEvents)
-                    // Default to the active event
-                    const activeEvent = typedEvents.find(e => e.is_active)
-                    if (activeEvent) {
-                        setSelectedEventId(activeEvent.id)
-                    } else if (typedEvents.length > 0) {
-                        setSelectedEventId(typedEvents[0].id)
-                    }
-                }
-            })
-    }, [])
+    const stats = useMemo(() => {
+        if (!statsQuery) return { total: 0, members: 0, guests: 0, firstTimers: 0, checkedIn: 0 }
+        return statsQuery
+    }, [statsQuery])
 
-    // Fetch Data for selected event
-    const fetchData = async (pageNumber = 0, currentSearch = searchTerm, currentBranch = branchFilter, eventId = selectedEventId) => {
-        if (!eventId) return
-        if (pageNumber === 0) setLoading(true)
-
-        // Fetch Branches for filter (only once)
-        if (pageNumber === 0) {
-            const { data: branchData } = await supabase.from('branches').select('name')
-            if (branchData) setBranches(branchData.map(b => b.name))
-        }
-
-        // 1. Fetch Logs
-        const start = pageNumber * ITEMS_PER_PAGE
-        const end = start + ITEMS_PER_PAGE - 1
-
-        let query = supabase
-            .from('attendance_logs')
-            .select('*')
-            .eq('event_id', eventId)
-            .order('created_at', { ascending: false })
-            .range(start, end)
-
-        if (currentSearch) {
-            query = query.or(`full_name.ilike.%${currentSearch}%,phone_number.ilike.%${currentSearch}%,branch.ilike.%${currentSearch}%,location.ilike.%${currentSearch}%`)
-        }
-        if (currentBranch) {
-            query = query.eq('branch', currentBranch)
-        }
-
-        const { data: logsData, error: logsError } = await query
-
-        if (logsError) {
-            console.error('Error fetching logs:', logsError)
-        } else {
-            if (logsData) {
-                if (pageNumber === 0) {
-                    setLogs(logsData)
-                } else {
-                    setLogs(prev => [...prev, ...logsData])
-                }
-
-                if (logsData.length < ITEMS_PER_PAGE) {
-                    setHasMore(false)
-                } else {
-                    setHasMore(true)
-                }
-            }
-        }
-
-        // 2. Fetch Stats (Counts) - Only on first page
-        if (pageNumber === 0) {
-            const { count: totalCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true }).eq('event_id', eventId)
-            const { count: memberCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true }).eq('event_id', eventId).eq('status', 'Member')
-            const { count: guestCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true }).eq('event_id', eventId).eq('status', 'Guest')
-            const { count: firstTimerCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true }).eq('event_id', eventId).eq('status', 'First Timer')
-            const { count: checkedInCount } = await supabase.from('attendance_logs').select('*', { count: 'exact', head: true }).eq('event_id', eventId).eq('checked_in', true)
-
-            setStats({
-                total: totalCount || 0,
-                members: memberCount || 0,
-                guests: guestCount || 0,
-                firstTimers: firstTimerCount || 0,
-                checkedIn: checkedInCount || 0
-            })
-        }
-
-        setLoading(false)
-    }
-
-    // Re-fetch when search, filter, or event changes (debounced)
-    useEffect(() => {
-        if (!selectedEventId) return
-        const timeout = setTimeout(() => {
-            setPage(0)
-            fetchData(0, searchTerm, branchFilter, selectedEventId)
-        }, 300)
-        return () => clearTimeout(timeout)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchTerm, branchFilter, selectedEventId])
-
-    useEffect(() => {
-        if (!selectedEventId) return
-
-        // Real-time Subscription
-        const channel = supabase
-            .channel('public:attendance_logs')
-            .on(
-                'postgres_changes',
-                { event: 'INSERT', schema: 'public', table: 'attendance_logs' },
-                (payload) => {
-                    const newLog = payload.new as Log
-
-                    // Only add if it matches current event
-                    if (newLog.event_id !== selectedEventId) return
-
-                    toast.success(`New Registration: ${newLog.full_name}`, {
-                        id: `registration-${newLog.id}`,
-                        duration: 5000,
-                        icon: '🔔'
-                    })
-
-                    setLogs(prev => [newLog, ...prev])
-
-                    setStats(prev => {
-                        const isMember = newLog.status === 'Member'
-                        const isFirstTimer = newLog.status === 'First Timer'
-                        return {
-                            total: prev.total + 1,
-                            members: isMember ? prev.members + 1 : prev.members,
-                            guests: (!isMember && !isFirstTimer) ? prev.guests + 1 : prev.guests,
-                            firstTimers: isFirstTimer ? prev.firstTimers + 1 : prev.firstTimers,
-                            checkedIn: newLog.checked_in ? prev.checkedIn + 1 : prev.checkedIn
-                        }
-                    })
-                }
-            )
-            .subscribe()
-
-        return () => {
-            supabase.removeChannel(channel)
-        }
-    }, [selectedEventId])
-
-    const handleDelete = async (id: number) => {
+    const handleDelete = async (id: string) => {
         setConfirmDeleteId(null)
-
-        const { error } = await supabase
-            .from('attendance_logs')
-            .delete()
-            .eq('id', id)
-
-        if (error) {
-            toast.error('Failed to delete. Check Database Permissions (RLS).')
-        } else {
+        try {
+            await deleteLog({ id: id as Id<"attendanceLogs"> })
             toast.success('Record deleted successfully')
-            setLogs(prev => prev.filter(l => l.id !== id))
+        } catch (error) {
+            toast.error('Failed to delete record.')
         }
     }
 
-    const openEditModal = (log: Log) => {
+    const openEditModal = (log: any) => {
         setEditingLog(log)
         setIsEditModalOpen(true)
     }
 
-    const handleCheckIn = async (id: number, currentStatus: boolean) => {
-        // Optimistic UI update
-        setLogs(prev => prev.map(l => l.id === id ? { ...l, checked_in: !currentStatus } : l))
-        setStats(prev => ({ ...prev, checkedIn: !currentStatus ? prev.checkedIn + 1 : prev.checkedIn - 1 }))
-
-        const { error } = await supabase
-            .from('attendance_logs')
-            .update({ checked_in: !currentStatus })
-            .eq('id', id)
-
-        if (error) {
-            toast.error('Failed to update check-in status')
-            // Revert changes
-            setLogs(prev => prev.map(l => l.id === id ? { ...l, checked_in: currentStatus } : l))
-            setStats(prev => ({ ...prev, checkedIn: currentStatus ? prev.checkedIn + 1 : prev.checkedIn - 1 }))
-        } else {
+    const handleCheckIn = async (id: string, currentStatus: boolean) => {
+        try {
+            await toggleCheckIn({ id: id as Id<"attendanceLogs">, status: !currentStatus })
             toast.success(!currentStatus ? 'Checked in successfully' : 'Check-in removed')
+        } catch (error) {
+            toast.error('Failed to update check-in status')
         }
     }
 
     const handleQRScan = async (decodedText: string) => {
-        const registrationId = parseInt(decodedText)
-        if (isNaN(registrationId)) return toast.error('Invalid QR Code format')
+        const registrationId = decodedText as Id<"attendanceLogs">
+        if (!logs) return toast.error('Logs not loaded')
 
-        setLoading(true)
-        const { data, error } = await supabase
-            .from('attendance_logs')
-            .select('id, full_name, checked_in')
-            .eq('id', registrationId)
-            .single()
+        const data = logs.find((l: any) => l._id === registrationId)
 
-        setLoading(false)
-
-        if (error || !data) {
+        if (!data) {
             return toast.error('Attendee not found in database')
         }
 
@@ -272,8 +113,7 @@ export default function AdminDashboard() {
             return toast.error(`${data.full_name} is already checked in`)
         }
 
-        // Perform Check-in
-        await handleCheckIn(data.id, false)
+        await handleCheckIn(data._id, false)
         toast.success(`Check-in Successful: ${data.full_name}`, {
             icon: '✅',
             duration: 4000
@@ -281,10 +121,11 @@ export default function AdminDashboard() {
     }
 
     const exportToCSV = () => {
+        if (!logs) return
         const headers = ['Time', 'Name', 'Status', 'Branch', 'Phone', 'Invited By', 'Location']
         const csvContent = [
             headers.join(','),
-            ...logs.map(log => [
+            ...logs.map((log: any) => [
                 new Date(log.created_at).toLocaleString(),
                 `"${log.full_name || ''}"`,
                 log.status,
@@ -295,7 +136,7 @@ export default function AdminDashboard() {
             ].join(','))
         ].join('\n')
 
-        const selectedEvent = events.find(e => e.id === selectedEventId)
+        const selectedEvent = events?.find(e => e._id === selectedEventId)
         const eventLabel = selectedEvent ? formatEventDate(selectedEvent.date) : 'All'
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
@@ -306,19 +147,11 @@ export default function AdminDashboard() {
         toast.success('Export downloaded')
     }
 
-    const filteredLogs = logs.filter(log => {
-        const matchesSearch =
-            log.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            log.phone_number?.includes(searchTerm) ||
-            log.branch?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            log.location?.toLowerCase().includes(searchTerm.toLowerCase())
+    const selectedEvent = events?.find(e => e._id === selectedEventId)
 
-        const matchesBranch = branchFilter ? log.branch === branchFilter : true
-
-        return matchesSearch && matchesBranch
-    })
-
-    const selectedEvent = events.find(e => e.id === selectedEventId)
+    if (events === undefined) {
+        return <StatsGridSkeleton />
+    }
 
     return (
         <motion.div
@@ -340,7 +173,10 @@ export default function AdminDashboard() {
                 </div>
                 <select
                     value={selectedEventId}
-                    onChange={(e) => setSelectedEventId(e.target.value)}
+                    onChange={(e) => {
+                        setSelectedEventId(e.target.value)
+                        setPage(0)
+                    }}
                     style={{
                         padding: '10px 16px',
                         background: 'rgba(168, 85, 247, 0.1)',
@@ -353,8 +189,8 @@ export default function AdminDashboard() {
                         cursor: 'pointer'
                     }}
                 >
-                    {events.map(ev => (
-                        <option key={ev.id} value={ev.id}>
+                    {events?.map(ev => (
+                        <option key={ev._id} value={ev._id}>
                             {formatEventDate(ev.date)} — {ev.theme} {ev.is_active ? '(Active)' : ''}
                         </option>
                     ))}
@@ -372,7 +208,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Stats Row */}
-            {loading && page === 0 ? (
+            {logs === undefined ? (
                 <StatsGridSkeleton />
             ) : (
                 <div className="stats-grid">
@@ -439,13 +275,13 @@ export default function AdminDashboard() {
                     }}
                 >
                     <option value="">All Branches</option>
-                    {branches.map(b => (
-                        <option key={b} value={b}>{b}</option>
+                    {branchesData?.map(b => (
+                        <option key={b._id} value={b.name}>{b.name}</option>
                     ))}
                 </select>
 
                 <div style={{ marginLeft: 'auto', color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>
-                    Showing {filteredLogs.length} records
+                    Showing {paginatedLogs.length} of {stats.total} records
                 </div>
 
                 <button
@@ -471,14 +307,10 @@ export default function AdminDashboard() {
                 >
                     <Scan size={16} /> Scan Pass
                 </button>
-
-                <button className="btn-icon" onClick={() => fetchData(0, searchTerm, branchFilter, selectedEventId)} title="Refresh">
-                    <RefreshCw size={18} color="white" />
-                </button>
             </div>
 
             {/* Data Table */}
-            {loading && page === 0 ? (
+            {logs === undefined ? (
                 <TableSkeleton />
             ) : (
                 <div className="glass-table-container">
@@ -497,13 +329,13 @@ export default function AdminDashboard() {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredLogs.length === 0 ? (
+                            {paginatedLogs.length === 0 ? (
                                 <tr><td colSpan={9} style={{ textAlign: 'center', padding: '40px' }}>
                                     {searchTerm ? `No records found matching "${searchTerm}"` : 'No registrations for this event yet'}
                                 </td></tr>
                             ) : (
-                                filteredLogs.map(log => (
-                                    <tr key={log.id}>
+                                paginatedLogs.map((log: any) => (
+                                    <tr key={log._id}>
                                     <td style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px' }}>
                                         <div style={{ fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginBottom: '4px' }}>
                                             {new Date(log.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -522,22 +354,22 @@ export default function AdminDashboard() {
                                         }}>
                                             {getInitials(log.full_name)}
                                         </div>
-                                        <span style={{ fontWeight: 600, color: 'white' }}>{log.full_name}</span>
+                                        <span style={{ fontWeight: 600, color: 'white', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis' }} title={log.full_name}>{log.full_name}</span>
                                     </td>
                                     <td>
                                         <span className={`status-badge ${log.status.toLowerCase().replace(' ', '-')}`}>
                                             {log.status}
                                         </span>
                                     </td>
-                                    <td>{log.branch === 'N/A' ? '-' : log.branch}</td>
-                                    <td style={{ maxWidth: '140px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={log.location || '-'}>{log.location || '-'}</td>
+                                    <td style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis' }} title={log.branch}>{log.branch === 'N/A' ? '-' : log.branch}</td>
+                                    <td style={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis' }} title={log.location || '-'}>{log.location || '-'}</td>
                                     <td>{log.phone_number}</td>
                                     <td style={{ color: 'rgba(255,255,255,0.6)' }}>{log.invited_by || '-'}</td>
                                     <td style={{ textAlign: 'center' }}>
                                         <motion.button
                                             whileHover={{ scale: 1.05, boxShadow: log.checked_in ? '0 4px 15px rgba(16, 185, 129, 0.2)' : '0 4px 15px rgba(255,255,255,0.1)' }}
                                             whileTap={{ scale: 0.95 }}
-                                            onClick={() => handleCheckIn(log.id, log.checked_in)}
+                                            onClick={() => handleCheckIn(log._id, log.checked_in)}
                                             style={{
                                                 background: log.checked_in ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05))' : 'rgba(255,255,255,0.03)',
                                                 border: log.checked_in ? '1px solid rgba(16, 185, 129, 0.5)' : '1px solid rgba(255,255,255,0.1)',
@@ -560,10 +392,10 @@ export default function AdminDashboard() {
                                         </motion.button>
                                     </td>
                                     <td>
-                                        {confirmDeleteId === log.id ? (
+                                        {confirmDeleteId === log._id ? (
                                             <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                                                 <button
-                                                    onClick={() => handleDelete(log.id)}
+                                                    onClick={() => handleDelete(log._id)}
                                                     style={{ padding: '6px 12px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}
                                                 >
                                                     Confirm
@@ -586,7 +418,7 @@ export default function AdminDashboard() {
                                                     <Edit2 size={16} color="#60a5fa" />
                                                 </button>
                                                 <button
-                                                    onClick={() => setConfirmDeleteId(log.id)}
+                                                    onClick={() => setConfirmDeleteId(log._id)}
                                                     className="btn-icon"
                                                     title="Delete"
                                                     style={{ padding: '6px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)' }}
@@ -605,14 +437,10 @@ export default function AdminDashboard() {
             )}
 
             {/* Load More Button */}
-            {hasMore && !loading && filteredLogs.length > 0 && (
+            {paginatedStatus === "CanLoadMore" && (
                 <div style={{ textAlign: 'center', marginTop: '20px', marginBottom: '40px' }}>
                     <button
-                        onClick={() => {
-                            const nextPage = page + 1
-                            setPage(nextPage)
-                            fetchData(nextPage)
-                        }}
+                        onClick={() => loadMore(50)}
                         style={{
                             padding: '10px 24px',
                             background: 'rgba(255,255,255,0.1)',
@@ -621,20 +449,29 @@ export default function AdminDashboard() {
                             color: 'white',
                             cursor: 'pointer',
                             fontSize: '14px',
-                            fontWeight: 500
+                            fontWeight: 500,
+                            transition: 'all 0.2s'
                         }}
+                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
+                        onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
                     >
                         Load More Records
                     </button>
                 </div>
             )}
+            {paginatedStatus === "LoadingMore" && (
+                <div style={{ padding: '20px', textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontSize: '14px' }}>
+                    Loading more records...
+                </div>
+            )}
 
-            <EditGuestModal
-                isOpen={isEditModalOpen}
-                onClose={() => setIsEditModalOpen(false)}
-                log={editingLog}
-                onUpdate={() => fetchData(0)}
-            />
+            {isEditModalOpen && (
+                <EditGuestModal
+                    isOpen={isEditModalOpen}
+                    onClose={() => setIsEditModalOpen(false)}
+                    log={editingLog}
+                />
+            )}
 
             <QRScannerModal
                 isOpen={isScannerOpen}

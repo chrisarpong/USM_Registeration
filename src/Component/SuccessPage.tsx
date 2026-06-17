@@ -6,11 +6,18 @@ import logo from '../assets/logo.png';
 
 export default function SuccessPage() {
     const location = useLocation();
-    const name = location.state?.name || 'there';
-    const registrationId = location.state?.registrationId || 'USM-GUEST';
+    const { name = 'there', registrationId = 'USM-GUEST', status, event } = location.state || {};
+
+    // Personalize the subtitle based on status
+    let welcomeMessage = 'Your registration has been confirmed. We look forward to seeing you!';
+    if (status === 'First Timer') {
+        welcomeMessage = 'We are thrilled to welcome you for the first time! Your registration is confirmed.';
+    } else if (status === 'Guest') {
+        welcomeMessage = 'Your guest registration is confirmed. We look forward to hosting you!';
+    }
 
     // Dynamic event data passed from Registration page
-    const eventData = location.state?.event || {};
+    const eventData = event || {};
     const eventDate = eventData.date || '—';
     const eventTime = eventData.time || '10:00 AM';
     const eventTheme = eventData.theme || 'TBD';
@@ -22,164 +29,107 @@ export default function SuccessPage() {
     };
 
     return (
-        <div className="registration-container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-            {/* Background Animations */}
-            <div className="background-shapes">
-                <motion.div
-                    className="shape"
-                    animate={{ x: [0, 50, 0], y: [0, 30, 0], rotate: [0, 90, 0] }}
-                    transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-                    style={{ width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%)', position: 'absolute', top: '-10%', left: '-10%' }}
-                />
-                <motion.div
-                    className="shape"
-                    animate={{ x: [0, -40, 0], y: [0, 40, 0], rotate: [0, -90, 0] }}
-                    transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
-                    style={{ width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(168, 85, 247, 0.1) 0%, transparent 70%)', position: 'absolute', bottom: '-20%', right: '-10%' }}
-                />
-            </div>
-
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', background: 'var(--bg-base)' }}>
             <motion.div
-                className="glass-panel"
-                initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                className="modal-content"
+                initial={{ opacity: 0, y: 30, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ duration: 0.6, type: 'spring', bounce: 0.4 }}
+                transition={{ duration: 0.4, ease: 'easeOut' }}
                 style={{
-                    maxWidth: '550px',
+                    maxWidth: '500px',
                     width: '100%',
-                    padding: 'clamp(24px, 6vw, 40px)',
+                    padding: 'clamp(24px, 5vw, 40px)',
                     textAlign: 'center',
-                    position: 'relative',
-                    zIndex: 10,
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    background: 'rgba(20, 20, 35, 0.5)'
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-xl)',
+                    boxShadow: 'var(--shadow-lg)'
                 }}
             >
-
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
-                    <img src={logo} alt="USM Logo" style={{ height: '80px', width: 'auto', filter: 'drop-shadow(0 0 16px rgba(168, 85, 247, 0.6))' }} />
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+                    <img src={logo} alt="USM Logo" style={{ height: '60px', width: 'auto' }} />
                 </div>
 
-                <h1 style={{ fontSize: 'clamp(24px, 7vw, 32px)', fontWeight: 800, marginBottom: '12px', color: 'white', lineHeight: 1.2 }}>
+                <h1 style={{ fontSize: 'clamp(24px, 6vw, 32px)', fontWeight: 700, marginBottom: '8px', color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
                     Registration Successful!
                 </h1>
 
-                <p style={{ fontSize: 'clamp(14px, 4vw, 16px)', color: 'rgba(255,255,255,0.7)', marginBottom: 'clamp(20px, 5vw, 32px)', lineHeight: 1.6 }}>
-                    Hi <span style={{ color: 'white', fontWeight: 600 }}>{name}</span>, we are absolutely thrilled to welcome you to the Unending Spirit Meeting. A confirmation has been sent to your email.
+                <p style={{ fontSize: '15px', color: 'var(--text-secondary)', marginBottom: '32px', lineHeight: 1.6 }}>
+                    Hi <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{name}</span>, <span style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>{welcomeMessage}</span>
                 </p>
 
                 {/* QR Code Section */}
                 <div style={{
                     background: 'white',
-                    padding: '20px',
-                    borderRadius: '16px',
+                    padding: '24px',
+                    borderRadius: 'var(--radius-lg)',
                     display: 'inline-block',
-                    marginBottom: '24px',
-                    boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+                    marginBottom: '32px',
+                    boxShadow: 'var(--shadow-md)'
                 }}>
                     <QRCodeSVG 
                         value={String(registrationId)} 
-                        size={150}
+                        size={160}
                         level="H"
                         includeMargin={false}
                     />
-                    <p style={{ color: '#1a1a2e', fontSize: '12px', fontWeight: 700, margin: '10px 0 0 0', letterSpacing: '1px' }}>
+                    <p style={{ color: '#09090b', fontSize: '12px', fontWeight: 600, margin: '16px 0 0 0', letterSpacing: '1px' }}>
                         YOUR ATTENDANCE PASS
                     </p>
                 </div>
 
                 <div style={{ marginBottom: '32px' }}>
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                    <button
                         onClick={shareOnWhatsApp}
+                        className="btn-submit"
                         style={{
                             background: '#25D366',
                             color: 'white',
-                            border: 'none',
-                            padding: '12px 24px',
-                            borderRadius: '12px',
-                            fontWeight: 700,
-                            fontSize: '15px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
                             margin: '0 auto',
-                            boxShadow: '0 4px 15px rgba(37, 211, 102, 0.3)'
+                            width: 'auto',
+                            padding: '12px 24px',
+                            borderRadius: '100px'
                         }}
                     >
                         <Share2 size={18} />
                         Invite a Friend on WhatsApp
-                    </motion.button>
+                    </button>
                 </div>
 
                 {/* Event Details Card */}
                 <div style={{
-                    background: 'rgba(0,0,0,0.3)',
-                    borderRadius: '16px',
-                    padding: 'clamp(16px, 4vw, 24px)',
-                    marginBottom: 'clamp(20px, 5vw, 32px)',
-                    border: '1px solid rgba(255,255,255,0.05)',
+                    background: 'var(--bg-base)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '20px',
+                    border: '1px solid var(--border)',
                     textAlign: 'left'
                 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', justifyContent: 'center' }}>
-                        <Sparkles size={20} color="#a855f7" />
-                        <h3 style={{ color: '#a855f7', fontSize: '18px', fontWeight: 600, margin: 0 }}>Theme: {eventTheme}</h3>
-                    </div>
-
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-                            <div style={{ padding: '10px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '12px', color: '#818cf8' }}>
-                                <Calendar size={20} />
-                            </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <Sparkles size={18} color="var(--primary)" />
                             <div>
-                                <h4 style={{ margin: '0 0 4px 0', fontSize: '13px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px' }}>Date</h4>
-                                <p style={{ margin: 0, color: 'white', fontSize: '16px', fontWeight: 500 }}>{eventDate}</p>
+                                <h4 style={{ margin: '0', fontSize: '13px', color: 'var(--text-secondary)' }}>Theme</h4>
+                                <p style={{ margin: 0, color: 'var(--text-primary)', fontSize: '15px', fontWeight: 500 }}>{eventTheme}</p>
                             </div>
                         </div>
-
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-                            <div style={{ padding: '10px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '12px', color: '#818cf8' }}>
-                                <Clock size={20} />
-                            </div>
+                        <div style={{ height: '1px', background: 'var(--border)' }} />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <Calendar size={18} color="var(--primary)" />
                             <div>
-                                <h4 style={{ margin: '0 0 4px 0', fontSize: '13px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px' }}>Time</h4>
-                                <p style={{ margin: 0, color: 'white', fontSize: '16px', fontWeight: 500 }}>{eventTime} Prompt</p>
+                                <h4 style={{ margin: '0', fontSize: '13px', color: 'var(--text-secondary)' }}>Date & Time</h4>
+                                <p style={{ margin: 0, color: 'var(--text-primary)', fontSize: '15px', fontWeight: 500 }}>{eventDate} at {eventTime}</p>
                             </div>
                         </div>
-
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-                            <div style={{ padding: '10px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '12px', color: '#818cf8' }}>
-                                <MapPin size={20} />
-                            </div>
+                        <div style={{ height: '1px', background: 'var(--border)' }} />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <MapPin size={18} color="var(--primary)" />
                             <div>
-                                <h4 style={{ margin: '0 0 4px 0', fontSize: '13px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px' }}>Venue Location</h4>
-                                <p style={{ margin: 0, color: 'white', fontSize: '15px', lineHeight: 1.5 }}>
-                                    {eventVenue}
-                                </p>
+                                <h4 style={{ margin: '0', fontSize: '13px', color: 'var(--text-secondary)' }}>Venue</h4>
+                                <p style={{ margin: 0, color: 'var(--text-primary)', fontSize: '15px', fontWeight: 500 }}>{eventVenue}</p>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 }}
-                    style={{
-                        padding: '16px 24px',
-                        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1))',
-                        border: '1px solid rgba(168, 85, 247, 0.2)',
-                        borderRadius: '20px',
-                        display: 'inline-block',
-                        margin: '0 auto'
-                    }}
-                >
-                    <p style={{ margin: 0, color: '#c084fc', fontSize: '15px', fontWeight: 600, letterSpacing: '0.5px' }}>
-                        Prepare your heart for a divine encounter.
-                    </p>
-                </motion.div>
             </motion.div>
         </div>
     );

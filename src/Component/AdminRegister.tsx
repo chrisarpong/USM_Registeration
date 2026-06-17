@@ -1,23 +1,15 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'react-hot-toast'
-import { supabase } from '../supabaseClient'
 import { useActiveEvent, formatEventDate } from '../hooks/useEvents'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-    Phone,
-    User,
-    Building2,
-    MapPin,
-    UserPlus,
-    ChevronRight,
-    CheckCircle,
-    Mail
+    Phone, User, Building2, MapPin, UserPlus,
+    ChevronRight, CheckCircle, Mail
 } from 'lucide-react'
 
-type Branch = {
-    id: string
-    name: string
-}
+import { useQuery, useMutation } from "convex/react"
+import { api } from "../../convex/_generated/api"
+import type { Id } from "../../convex/_generated/dataModel"
 
 type Status = 'Member' | 'Guest' | 'First Timer'
 
@@ -34,24 +26,22 @@ export default function AdminRegister() {
     const [invitee, setInvitee] = useState('')
 
     // UI state
-    const [branches, setBranches] = useState<Branch[]>([])
+    const branchesData = useQuery(api.branches.getBranches)
+    const branches = branchesData || []
     const [loading, setLoading] = useState(false)
     const [success, setSuccess] = useState(false)
 
+    const registerAttendee = useMutation(api.attendanceLogs.registerAttendee)
+
     // Conditional visibility
     const showBranch = status === 'Member'
-    const showInvitedBy = status === 'Guest' || status === 'First Timer'
+    const showInvitedBy = status === 'First Timer'
 
     useEffect(() => {
-        const fetchBranches = async () => {
-            const { data } = await supabase.from('branches').select('*').order('name')
-            if (data && data.length > 0) {
-                setBranches(data)
-                setBranch(data[0].name)
-            }
+        if (branches.length > 0 && !branch) {
+            setBranch(branches[0].name)
         }
-        fetchBranches()
-    }, [])
+    }, [branches, branch])
 
     // Clear conditional fields when status changes
     useEffect(() => {
@@ -73,13 +63,10 @@ export default function AdminRegister() {
         setInvitee('')
     }
 
-
-
     const handleRegister = async () => {
         if (!fullName.trim()) return toast.error('Please enter full name')
         if (!phone.trim()) return toast.error('Please enter phone number')
-        // Email optional for admin manual entry? 
-        // Let's make it optional but recommended.
+        
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         if (email.trim() && !emailRegex.test(email.trim())) {
             return toast.error('Please enter a valid email address')
@@ -88,49 +75,48 @@ export default function AdminRegister() {
         const finalBranch = status === 'Member' ? branch : 'N/A'
         if (status === 'Member' && !finalBranch) return toast.error('Please select a branch')
         if (!location.trim()) return toast.error('Please enter a location')
+        if (!event) return toast.error('No active event found to register under.')
 
         setLoading(true)
 
-        const { error } = await supabase
-            .from('attendance_logs')
-            .insert([
-                {
-                    full_name: fullName.trim(),
-                    phone_number: phone.trim(),
-                    email: email.trim() || null,
-                    status: status,
-                    branch: finalBranch,
-                    location: location.trim(),
-                    invited_by: showInvitedBy ? invitee.trim() || null : null,
-                    event_id: event?.id || null,
-                }
-            ])
-        setLoading(false)
+        try {
+            await registerAttendee({
+                full_name: fullName.trim(),
+                phone_number: phone.trim(),
+                email: email.trim() || undefined,
+                status: status,
+                branch: finalBranch,
+                location: location.trim(),
+                invited_by: showInvitedBy ? invitee.trim() || undefined : undefined,
+                event_id: event.id as Id<"events">,
+                is_admin_registration: true,
+            })
 
-        // Trigger Email Notification if email is provided
-        if (email.trim() && !error) {
-            fetch('/api/send-email', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: fullName.trim(),
-                    email: email.trim(),
-                    eventDate: event ? formatEventDate(event.date) : undefined,
-                    eventTime: event?.time,
-                    eventTheme: event?.theme,
-                    eventVenue: event?.venue,
-                    flyerUrl: event?.flyer_url,
-                })
-            }).catch(err => console.error('Failed to send email:', err))
-        }
+            // Trigger Email Notification if email is provided
+            if (email.trim()) {
+                fetch('/api/send-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: fullName.trim(),
+                        email: email.trim(),
+                        eventDate: event ? formatEventDate(event.date) : undefined,
+                        eventTime: event?.time,
+                        eventTheme: event?.theme,
+                        eventVenue: event?.venue,
+                        flyerUrl: event?.flyer_url,
+                    })
+                }).catch(err => console.error('Failed to send email:', err))
+            }
 
-        if (error) {
-            toast.error('Error registering user: ' + error.message)
-        } else {
             toast.success('User registered successfully!')
             setSuccess(true)
             resetForm()
             setTimeout(() => setSuccess(false), 3000)
+        } catch (error: any) {
+            toast.error('Error registering user: ' + error.message)
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -243,7 +229,7 @@ export default function AdminRegister() {
                                     onChange={(e) => setBranch(e.target.value)}
                                 >
                                     {branches.map((b) => (
-                                        <option key={b.id} value={b.name}>{b.name}</option>
+                                        <option key={b._id} value={b.name}>{b.name}</option>
                                     ))}
                                 </select>
                             </div>
@@ -282,7 +268,7 @@ export default function AdminRegister() {
                     <button
                         className="btn-submit"
                         onClick={handleRegister}
-                        disabled={loading}
+                        disabled={loading || !event}
                     >
                         {loading ? 'Registering...' : (
                             <>Register Member <ChevronRight size={18} style={{ verticalAlign: 'middle', marginLeft: 4 }} /></>

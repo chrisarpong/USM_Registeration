@@ -1,31 +1,16 @@
 import { useState, useRef } from 'react'
-import { supabase } from '../supabaseClient'
 import { useAllEvents, formatEventDate } from '../hooks/useEvents'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'react-hot-toast'
 import type { USMEvent } from '../types'
+import { useMutation } from "convex/react"
+import { api } from "../../convex/_generated/api"
+import type { Id } from "../../convex/_generated/dataModel"
+
 import {
-    CalendarDays,
-    Plus,
-    Power,
-    PowerOff,
-    Trash2,
-    Edit2,
-    X,
-    Save,
-    MapPin,
-    ToggleRight,
-    Users,
-    CheckCircle,
-    Upload,
-    Loader2,
-    Link as LinkIcon,
-    Copy,
-    Sparkles,
-    Image,
-    FileText,
-    ToggleLeft,
-    Clock
+    CalendarDays, Plus, Power, PowerOff, Trash2, Edit2, X, Save, MapPin,
+    ToggleRight, Users, CheckCircle, Upload, Loader2, Link as LinkIcon,
+    Copy, Sparkles, Image, FileText, ToggleLeft, Clock
 } from 'lucide-react'
 
 type EventFormData = {
@@ -57,7 +42,7 @@ const DEFAULT_FORM: EventFormData = {
 export default function EventManagement() {
     const { events, loading, refetch } = useAllEvents()
     const [isModalOpen, setIsModalOpen] = useState(false)
-    const [editingEvent, setEditingEvent] = useState<USMEvent | null>(null)
+    const [editingEvent, setEditingEvent] = useState<any | null>(null)
     const [formData, setFormData] = useState<EventFormData>(DEFAULT_FORM)
     const [saving, setSaving] = useState(false)
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
@@ -65,6 +50,13 @@ export default function EventManagement() {
     const [showUrlInput, setShowUrlInput] = useState(false)
     const [dragActive, setDragActive] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
+
+    const generateUploadUrl = useMutation(api.storage.generateUploadUrl)
+    const getPublicUrl = useMutation(api.storage.getPublicUrl)
+
+    const createEvent = useMutation(api.events.createEvent)
+    const updateEvent = useMutation(api.events.updateEvent)
+    const deleteEvent = useMutation(api.events.deleteEvent)
 
     const handleFlyerUpload = async (file: File) => {
         if (!file.type.startsWith('image/')) {
@@ -78,30 +70,32 @@ export default function EventManagement() {
         }
 
         setUploading(true)
-        const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-        const fileName = `usm-flyer-${Date.now()}.${fileExt}`
-
-        const { error: uploadError } = await supabase.storage
-            .from('event-flyers')
-            .upload(fileName, file, {
-                cacheControl: '3600',
-                upsert: false,
+        try {
+            // Step 1: Get upload URL from Convex
+            const postUrl = await generateUploadUrl()
+            
+            // Step 2: POST the file to the URL
+            const result = await fetch(postUrl, {
+                method: "POST",
+                headers: { "Content-Type": file.type },
+                body: file,
             })
+            const { storageId } = await result.json()
 
-        if (uploadError) {
-            console.error('Upload error:', uploadError)
-            toast.error('Failed to upload image: ' + uploadError.message)
+            // Step 3: Get the public URL for the storageId
+            const publicUrl = await getPublicUrl({ storageId })
+            if (publicUrl) {
+                setFormData(prev => ({ ...prev, flyer_url: publicUrl }))
+                toast.success('Flyer uploaded successfully!')
+            } else {
+                toast.error('Failed to get public URL for image')
+            }
+        } catch (error: any) {
+            console.error('Upload error:', error)
+            toast.error('Failed to upload image: ' + error.message)
+        } finally {
             setUploading(false)
-            return
         }
-
-        const { data: urlData } = supabase.storage
-            .from('event-flyers')
-            .getPublicUrl(fileName)
-
-        setFormData(prev => ({ ...prev, flyer_url: urlData.publicUrl }))
-        toast.success('Flyer uploaded successfully!')
-        setUploading(false)
     }
 
     const handleDrop = (e: React.DragEvent) => {
@@ -126,7 +120,7 @@ export default function EventManagement() {
         setIsModalOpen(true)
     }
 
-    const openEditModal = (event: USMEvent) => {
+    const openEditModal = (event: any) => {
         setEditingEvent(event)
         setFormData({
             title: event.title,
@@ -143,7 +137,7 @@ export default function EventManagement() {
         setIsModalOpen(true)
     }
 
-    const handleDuplicate = (event: USMEvent) => {
+    const handleDuplicate = (event: any) => {
         setEditingEvent(null)
         setFormData({
             title: event.title,
@@ -168,130 +162,93 @@ export default function EventManagement() {
 
         setSaving(true)
 
-        if (editingEvent) {
-            // Update existing
-            const { error } = await supabase
-                .from('events')
-                .update({
+        try {
+            if (editingEvent) {
+                await updateEvent({
+                    id: editingEvent._id,
                     title: formData.title,
                     date: formData.date,
                     time: formData.time,
                     theme: formData.theme,
                     venue: formData.venue,
-                    venue_address: formData.venue_address || null,
-                    map_query: formData.map_query || null,
-                    description: formData.description || null,
-                    flyer_url: formData.flyer_url || null,
+                    venue_address: formData.venue_address || undefined,
+                    map_query: formData.map_query || undefined,
+                    description: formData.description || undefined,
+                    flyer_url: formData.flyer_url || undefined,
                     is_registration_open: formData.is_registration_open,
                 })
-                .eq('id', editingEvent.id)
-
-            if (error) {
-                toast.error('Failed to update event: ' + error.message)
-            } else {
                 toast.success('Event updated successfully')
-                setIsModalOpen(false)
-                refetch()
-            }
-        } else {
-            // Create new
-            const { error } = await supabase
-                .from('events')
-                .insert({
+            } else {
+                await createEvent({
                     title: formData.title,
                     date: formData.date,
                     time: formData.time,
                     theme: formData.theme,
                     venue: formData.venue,
-                    venue_address: formData.venue_address || null,
-                    map_query: formData.map_query || null,
-                    description: formData.description || null,
-                    flyer_url: formData.flyer_url || null,
+                    venue_address: formData.venue_address || undefined,
+                    map_query: formData.map_query || undefined,
+                    description: formData.description || undefined,
+                    flyer_url: formData.flyer_url || undefined,
                     is_active: false,
                     is_registration_open: formData.is_registration_open,
                 })
-
-            if (error) {
-                toast.error('Failed to create event: ' + error.message)
-            } else {
                 toast.success('Event created! Activate it when ready.')
-                setIsModalOpen(false)
-                refetch()
             }
+            setIsModalOpen(false)
+        } catch (error: any) {
+            toast.error('Failed to save event: ' + error.message)
+        } finally {
+            setSaving(false)
         }
-        setSaving(false)
     }
 
     const handleActivate = async (eventId: string) => {
-        // Deactivate all currently active events first
-        const { error: deactivateError } = await supabase
-            .from('events')
-            .update({ is_active: false })
-            .eq('is_active', true)
-
-        if (deactivateError) {
-            toast.error('Failed to deactivate events: ' + deactivateError.message)
-            return
-        }
-
-        // Now activate the selected one
-        const { error } = await supabase
-            .from('events')
-            .update({ is_active: true })
-            .eq('id', eventId)
-
-        if (error) {
-            toast.error('Failed to activate event: ' + error.message)
-        } else {
+        try {
+            await updateEvent({
+                id: eventId as Id<"events">,
+                is_active: true
+            })
             toast.success('Event activated! Public registration now shows this event.')
-            refetch()
+        } catch (error: any) {
+            toast.error('Failed to activate event: ' + error.message)
         }
     }
 
     const handleDeactivate = async (eventId: string) => {
-        const { error } = await supabase
-            .from('events')
-            .update({ is_active: false })
-            .eq('id', eventId)
-
-        if (error) {
-            toast.error('Failed to deactivate event')
-        } else {
+        try {
+            await updateEvent({
+                id: eventId as Id<"events">,
+                is_active: false
+            })
             toast.success('Event deactivated')
-            refetch()
+        } catch (error: any) {
+            toast.error('Failed to deactivate event: ' + error.message)
         }
     }
 
     const handleToggleRegistration = async (eventId: string, currentState: boolean) => {
-        const { error } = await supabase
-            .from('events')
-            .update({ is_registration_open: !currentState })
-            .eq('id', eventId)
-
-        if (error) {
-            toast.error('Failed to toggle registration')
-        } else {
+        try {
+            await updateEvent({
+                id: eventId as Id<"events">,
+                is_registration_open: !currentState
+            })
             toast.success(!currentState ? 'Registration opened' : 'Registration closed')
-            refetch()
+        } catch (error: any) {
+            toast.error('Failed to toggle registration: ' + error.message)
         }
     }
 
     const handleDelete = async (eventId: string) => {
         setConfirmDeleteId(null)
-        const { error } = await supabase
-            .from('events')
-            .delete()
-            .eq('id', eventId)
-
-        if (error) {
-            toast.error('Failed to delete event. It may have registrations linked to it.')
-        } else {
+        try {
+            await deleteEvent({ id: eventId as Id<"events"> })
             toast.success('Event deleted')
-            refetch()
+        } catch (error: any) {
+            toast.error('Failed to delete event. It may have registrations linked to it.')
         }
     }
 
-    const getEventStatus = (event: USMEvent) => {
+    const getEventStatus = (event: any) => {
         const eventDate = new Date(event.date + 'T23:59:59')
         const now = new Date()
         if (event.is_active) return 'active'
@@ -353,11 +310,11 @@ export default function EventManagement() {
                 </div>
             ) : (
                 <div style={{ display: 'grid', gap: '20px' }}>
-                    {events.map(event => {
+                    {events.map((event: any) => {
                         const status = getEventStatus(event)
                         return (
                             <motion.div
-                                key={event.id}
+                                key={event._id}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 className="event-card"
@@ -449,7 +406,7 @@ export default function EventManagement() {
                                         {/* Activate / Deactivate */}
                                         {event.is_active ? (
                                             <button
-                                                onClick={() => handleDeactivate(event.id)}
+                                                onClick={() => handleDeactivate(event._id)}
                                                 title="Deactivate"
                                                 style={{
                                                     padding: '8px 16px', borderRadius: '10px', cursor: 'pointer',
@@ -462,7 +419,7 @@ export default function EventManagement() {
                                             </button>
                                         ) : (
                                             <button
-                                                onClick={() => handleActivate(event.id)}
+                                                onClick={() => handleActivate(event._id)}
                                                 title="Set as Active Event"
                                                 style={{
                                                     padding: '8px 16px', borderRadius: '10px', cursor: 'pointer',
@@ -477,7 +434,7 @@ export default function EventManagement() {
 
                                         {/* Toggle Registration */}
                                         <button
-                                            onClick={() => handleToggleRegistration(event.id, event.is_registration_open)}
+                                            onClick={() => handleToggleRegistration(event._id, event.is_registration_open)}
                                             title={event.is_registration_open ? 'Close Registration' : 'Open Registration'}
                                             style={{
                                                 padding: '8px 16px', borderRadius: '10px', cursor: 'pointer',
@@ -511,10 +468,10 @@ export default function EventManagement() {
                                         </button>
 
                                         {/* Delete */}
-                                        {confirmDeleteId === event.id ? (
+                                        {confirmDeleteId === event._id ? (
                                             <div style={{ display: 'flex', gap: '6px' }}>
                                                 <button
-                                                    onClick={() => handleDelete(event.id)}
+                                                    onClick={() => handleDelete(event._id)}
                                                     style={{ padding: '6px 12px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}
                                                 >
                                                     Confirm
@@ -528,7 +485,7 @@ export default function EventManagement() {
                                             </div>
                                         ) : (
                                             <button
-                                                onClick={() => setConfirmDeleteId(event.id)}
+                                                onClick={() => setConfirmDeleteId(event._id)}
                                                 className="btn-icon"
                                                 title="Delete"
                                                 style={{ padding: '8px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)' }}
@@ -801,33 +758,31 @@ export default function EventManagement() {
                                 </div>
                             </div>
 
-                            {/* Actions */}
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '28px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '20px' }}>
+                            {/* Modal Actions */}
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '32px' }}>
                                 <button
                                     onClick={() => setIsModalOpen(false)}
                                     style={{
-                                        padding: '12px 24px', borderRadius: '10px',
-                                        border: '1px solid rgba(255,255,255,0.1)',
-                                        background: 'transparent', color: 'white', cursor: 'pointer', fontWeight: 500
+                                        padding: '12px 24px', background: 'transparent',
+                                        border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px',
+                                        color: 'white', cursor: 'pointer', fontWeight: 600
                                     }}
                                 >
                                     Cancel
                                 </button>
-                                <motion.button
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
+                                <button
                                     onClick={handleSave}
-                                    disabled={saving}
+                                    disabled={saving || uploading}
                                     style={{
-                                        padding: '12px 28px', borderRadius: '10px', border: 'none',
-                                        background: 'linear-gradient(135deg, var(--primary) 0%, #5b21b6 100%)',
-                                        color: 'white', cursor: 'pointer', fontWeight: 600,
-                                        display: 'flex', alignItems: 'center', gap: '8px',
-                                        boxShadow: '0 8px 24px rgba(124, 93, 250, 0.3)'
+                                        padding: '12px 24px', background: 'linear-gradient(135deg, var(--primary) 0%, #5b21b6 100%)',
+                                        border: 'none', borderRadius: '12px', color: 'white', cursor: 'pointer',
+                                        display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600,
+                                        boxShadow: '0 4px 15px rgba(124, 93, 250, 0.3)'
                                     }}
                                 >
-                                    {saving ? 'Saving...' : <><Save size={16} /> {editingEvent ? 'Save Changes' : 'Create Event'}</>}
-                                </motion.button>
+                                    {saving ? <Loader2 size={18} className="spin" /> : <Save size={18} />}
+                                    {saving ? 'Saving...' : 'Save Event'}
+                                </button>
                             </div>
                         </motion.div>
                     </div>

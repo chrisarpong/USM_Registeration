@@ -1,51 +1,46 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Save, User, Phone, UserPlus } from 'lucide-react'
-import { supabase } from '../supabaseClient'
 import { toast } from 'react-hot-toast'
+import { useQuery, useMutation } from "convex/react"
+import { api } from "../../convex/_generated/api"
+import type { Id } from "../../convex/_generated/dataModel"
 
 type Log = {
-    id: number
+    _id: Id<"attendanceLogs">
     full_name: string
     phone_number: string
     status: string
-    branch: string
-    invited_by: string | null
-    location: string | null
+    branch?: string
+    invited_by?: string
+    location?: string
 }
 
 type Props = {
     isOpen: boolean
     onClose: () => void
     log: Log | null
-    onUpdate: () => void
 }
 
-export default function EditGuestModal({ isOpen, onClose, log, onUpdate }: Props) {
+export default function EditGuestModal({ isOpen, onClose, log }: Props) {
     const [loading, setLoading] = useState(false)
     const [formData, setFormData] = useState<Partial<Log>>({})
-    const [branches, setBranches] = useState<string[]>([])
+    
+    const branchesData = useQuery(api.branches.getBranches)
+    const branches = branchesData?.map(b => b.name) || []
+    const updateLog = useMutation(api.attendanceLogs.updateLog)
 
     useEffect(() => {
         if (log) {
-            setTimeout(() => {
-                setFormData({
-                    full_name: log.full_name,
-                    phone_number: log.phone_number,
-                    status: log.status,
-                    branch: log.branch,
-                    invited_by: log.invited_by,
-                    location: log.location
-                })
-            }, 10)
+            setFormData({
+                full_name: log.full_name,
+                phone_number: log.phone_number,
+                status: log.status,
+                branch: log.branch,
+                invited_by: log.invited_by,
+                location: log.location
+            })
         }
-
-        // Fetch branches
-        const fetchBranches = async () => {
-            const { data } = await supabase.from('branches').select('name')
-            if (data) setBranches(data.map(b => b.name))
-        }
-        fetchBranches()
     }, [log])
 
     const handleChange = (field: keyof Log, value: string) => {
@@ -61,22 +56,24 @@ export default function EditGuestModal({ isOpen, onClose, log, onUpdate }: Props
             payloadToSave.branch = 'N/A'
         }
 
-        const { error } = await supabase
-            .from('attendance_logs')
-            .update(payloadToSave)
-            .eq('id', log.id)
-
-        setLoading(false)
-
-        if (error) {
+        try {
+            await updateLog({
+                id: log._id,
+                full_name: payloadToSave.full_name,
+                phone_number: payloadToSave.phone_number,
+                status: payloadToSave.status,
+                branch: payloadToSave.branch,
+                invited_by: payloadToSave.invited_by,
+                location: payloadToSave.location,
+            })
+            toast.success('Record updated successfully')
+            onClose()
+        } catch (error) {
             console.error('Update error:', error)
             toast.error('Failed to update record')
-            return
+        } finally {
+            setLoading(false)
         }
-
-        toast.success('Record updated successfully')
-        onUpdate()
-        onClose()
     }
 
     if (!isOpen || !log) return null
@@ -161,6 +158,7 @@ export default function EditGuestModal({ isOpen, onClose, log, onUpdate }: Props
                                     >
                                         <option value="Member">Member</option>
                                         <option value="Guest">Guest</option>
+                                        <option value="First Timer">First Timer</option>
                                     </select>
                                 </div>
                             </div>
@@ -181,7 +179,7 @@ export default function EditGuestModal({ isOpen, onClose, log, onUpdate }: Props
                         </div>
 
                         {/* Invited By (Conditional) */}
-                        {formData.status === 'Guest' && (
+                        {formData.status !== 'Member' && (
                             <div>
                                 <label style={{ display: 'block', fontSize: '13px', color: 'gray', marginBottom: '6px' }}>Invited By</label>
                                 <div className="input-wrapper" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>

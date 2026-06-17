@@ -1,36 +1,23 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
-import { supabase } from '../supabaseClient'
 import { useActiveEvent, formatEventDate } from '../hooks/useEvents'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-    Calendar,
-    MapPin,
-    Clock,
-    Users,
-    Phone,
-    User,
-    Building2,
-    UserPlus,
-    ChevronRight,
-    Mail,
-    Sparkles,
+    Calendar, MapPin, Clock, Users, Phone, User,
+    Building2, UserPlus, ChevronRight, Mail, Sparkles,
 } from 'lucide-react'
 
 import flyerFallback from '../assets/USM.jpeg'
+import bgImage from '../assets/14.JPEG'
 import logo from '../assets/logo.png'
 import { RegistrationSkeleton } from './Skeletons'
 
-type Branch = {
-    id: string
-    name: string
-}
+import { useQuery, useMutation, useAction } from "convex/react"
+import { api } from "../../convex/_generated/api"
 
 type Status = 'Member' | 'Guest' | 'First Timer'
 
 export default function Registration() {
-    const navigate = useNavigate()
     const { event, loading: eventLoading, error: eventError } = useActiveEvent()
 
     // Form state
@@ -43,35 +30,23 @@ export default function Registration() {
     const [invitee, setInvitee] = useState('')
 
     // UI state
-    const [branches, setBranches] = useState<Branch[]>([])
+    const branchesData = useQuery(api.branches.getBranches)
+    const branches = branchesData || []
     const [loading, setLoading] = useState(false)
+
+    const registerAttendee = useMutation(api.attendanceLogs.registerAttendee)
+    const sendWelcomeEmail = useAction(api.sendEmail.sendWelcomeEmail)
 
     // Conditional visibility
     const showBranch = status === 'Member'
-    const showInvitedBy = status === 'Guest' || status === 'First Timer'
+    const showInvitedBy = status === 'First Timer'
 
-    // Fetch branches on mount
+    // Set default branch when loaded
     useEffect(() => {
-        const fetchBranches = async () => {
-            const { data, error } = await supabase
-                .from('branches')
-                .select('*')
-                .order('name')
-
-            if (error) {
-                console.error('Error fetching branches:', error)
-                return
-            }
-
-            if (data && data.length > 0) {
-                setBranches(data)
-                setBranch(data[0].name)
-            }
+        if (branches.length > 0 && !branch) {
+            setBranch(branches[0].name)
         }
-
-        fetchBranches()
-    }, [])
-
+    }, [branches, branch])
 
     // Clear conditional fields when status changes
     useEffect(() => {
@@ -83,434 +58,444 @@ export default function Registration() {
         return () => clearTimeout(timeout)
     }, [status, showBranch, showInvitedBy, branches, branch])
 
-    const resetForm = () => {
-        setStatus('Member')
-        setPhone('')
-        setFullName('')
-        setEmail('')
-        setBranch(branches.length > 0 ? branches[0].name : '')
-        setLocation('')
-        setInvitee('')
+    const handleRegister = async () => {
+        if (!event) return
+
+        if (!fullName.trim() || !phone.trim() || !email.trim() || !location.trim()) {
+            toast.error('Please fill all required fields.')
+            return
+        }
+
+        if (showBranch && !branch) {
+            toast.error('Please select your branch.')
+            return
+        }
+
+        if (showInvitedBy && !invitee.trim()) {
+            toast.error('Please mention who invited you.')
+            return
+        }
+
+        setLoading(true)
+        try {
+            const logId = await registerAttendee({
+                event_id: event._id,
+                full_name: fullName,
+                email,
+                phone_number: phone,
+                status,
+                branch: showBranch ? branch : undefined,
+                location,
+                invited_by: showInvitedBy ? invitee : undefined,
+                is_admin_registration: false
+            })
+
+            if (email) {
+                // Send email in background
+                sendWelcomeEmail({
+                    email,
+                    name: fullName,
+                    eventId: event._id,
+                    logId: logId as any
+                }).catch(e => console.error("Email failed to send", e))
+            }
+
+            toast.success('Registration successful!')
+            
+            setFullName('')
+            setEmail('')
+            setPhone('')
+            setLocation('')
+            setInvitee('')
+            setStatus('Member')
+
+        } catch (error: unknown) {
+            console.error("Registration error:", error)
+            const err = error as Error
+            toast.error(err.message || 'Failed to register. Please try again.')
+        } finally {
+            setLoading(false)
+        }
     }
 
-    // Derived event values with fallbacks
-    const eventDate = event ? formatEventDate(event.date) : '—'
-    const eventTime = event?.time || '10:00 AM'
-    const eventTheme = event?.theme || 'TBD'
-    const eventVenue = event?.venue || 'Venue TBD'
-    const eventMapQuery = event?.map_query || 'Chatime+Ghana+Ofankor'
-    const eventDescription = event?.description || 'The Unending Spirit meeting returns. Get ready🔥'
-    const eventFlyer = event?.flyer_url || flyerFallback
-    const registrationOpen = event?.is_registration_open ?? true
-
-    // Show loading state while event data is being fetched
-    if (eventLoading) {
-        return <RegistrationSkeleton />
-    }
-
-    // Show error state if no active event
-    if (eventError || !event) {
+    if (eventError) {
         return (
-            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    style={{ textAlign: 'center', color: 'rgba(255,255,255,0.6)', maxWidth: '400px', padding: '40px' }}
-                >
-                    <img src={logo} alt="USM Logo" style={{ height: '80px', margin: '0 auto 20px', display: 'block', filter: 'drop-shadow(0 0 16px rgba(168, 85, 247, 0.6))' }} />
-                    <h2 style={{ color: 'white', marginBottom: '12px', fontFamily: 'Outfit, sans-serif' }}>No Active Event</h2>
-                    <p style={{ lineHeight: 1.6 }}>Registration is not currently open. Check back later for the next Unending Spirit Meeting!</p>
-                    <div style={{ marginTop: '24px' }}>
-                        <a href="/login" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.2)', textDecoration: 'none' }}>Admin Login</a>
-                    </div>
-                </motion.div>
+            <div className="registration-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', width: '100vw' }}>
+                <div style={{ textAlign: 'center', padding: '40px', background: 'var(--bg-base)', borderRadius: '16px' }}>
+                    <h2 style={{ color: 'var(--danger)', marginBottom: '16px' }}>Configuration Error</h2>
+                    <p style={{ color: 'var(--text-secondary)' }}>{eventError}</p>
+                </div>
             </div>
         )
     }
 
-
-    const handleRegister = async () => {
-        if (!registrationOpen) return toast.error('Registration is currently closed for this event')
-        if (!fullName.trim()) return toast.error('Please enter your full name')
-        if (!phone.trim()) return toast.error('Please enter your phone number')
-        if (!email.trim()) return toast.error('Please enter your email address')
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!emailRegex.test(email.trim())) return toast.error('Please enter a valid email address')
-        
-        const finalBranch = status === 'Member' ? branch : 'N/A'
-        if (status === 'Member' && !finalBranch) return toast.error('Please select a branch')
-        if (!location.trim()) return toast.error('Please enter your location')
-
-        setLoading(true)
-
-        const { data, error } = await supabase
-            .from('attendance_logs')
-            .insert([
-                {
-                    full_name: fullName.trim(),
-                    phone_number: phone.trim(),
-                    email: email.trim(),
-                    status: status,
-                    branch: finalBranch,
-                    location: location.trim(),
-                    invited_by: showInvitedBy ? invitee.trim() || null : null,
-                    event_id: event.id,
-                }
-            ])
-            .select()
-
-        setLoading(false)
-
-        if (error) {
-            console.error('Registration error:', error)
-            toast.error('Something went wrong. Please try again.')
-            return
-        }
-
-        // Trigger Email Notification with dynamic event details
-        fetch('/api/send-email', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name: fullName.trim(),
-                email: email.trim(),
-                eventDate: eventDate,
-                eventTime: eventTime,
-                eventTheme: eventTheme,
-                eventVenue: eventVenue,
-                flyerUrl: event.flyer_url,
-            })
-        }).catch(err => console.error('Failed to send email:', err))
-
-        toast.success('Registration successful! See you soon! 🎉', { duration: 5000 })
-        const registrationId = data?.[0]?.id
-        resetForm()
-        navigate('/success', {
-            state: {
-                name: fullName.trim(),
-                registrationId,
-                event: {
-                    date: eventDate,
-                    time: eventTime,
-                    theme: eventTheme,
-                    venue: eventVenue,
-                }
-            }
-        })
+    if (eventLoading || !event) {
+        return <RegistrationSkeleton />
     }
 
-    return (
-        <motion.div
-            className="registration-container"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        >
-            {/* ─── LEFT: Event Info Panel ─── */}
-            <div className="info-panel" style={{ padding: '0', display: 'flex', flexDirection: 'column' }}>
+    const eventDate = formatEventDate(event.date)
+    const eventTime = event.time || '10:00 AM'
+    const eventVenue = event.venue || '3rd floor ORA black star building, Opposite Ofankor Shell filling station'
+    const eventTheme = event.theme || 'The Walking of Miracle 2.0'
+    const eventDescription = event.description || 'The Unending Spirit meeting returns. Get ready🔥'
+    const registrationOpen = event.isRegistrationOpen ?? true
+    const eventFlyer = event.flyer_url || flyerFallback
 
-                {/* 1. FLYER IMAGE AREA (Top Half) */}
-                <div style={{ flex: '1', position: 'relative', overflow: 'hidden', minHeight: '300px' }}>
+    return (
+        <div className="page-wrapper" style={{ 
+            minHeight: '100vh', 
+            width: '100%',
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            position: 'relative',
+            overflow: 'hidden',
+            padding: '20px'
+        }}>
+            {/* Global Background Image (Blurred) */}
+            <div style={{
+                position: 'absolute',
+                inset: -20,
+                backgroundImage: `url(${bgImage})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                filter: 'blur(10px)',
+                zIndex: -2
+            }} />
+            
+            <div style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'rgba(0,0,0,0.3)',
+                zIndex: -1
+            }} />
+
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'minmax(350px, 1fr) minmax(400px, 1.2fr)',
+                    width: '100%',
+                    maxWidth: '1000px',
+                    minHeight: '700px',
+                    background: 'rgba(30, 30, 35, 0.4)', // Translucent main background
+                    backdropFilter: 'blur(30px)',
+                    WebkitBackdropFilter: 'blur(30px)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '24px',
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                    overflow: 'hidden',
+                    position: 'relative',
+                    zIndex: 10
+                }}
+            >
+                {/* ─── LEFT PANEL (Dark Solid/Translucent) ─── */}
+                <div style={{
+                    background: '#16161c', // Solid dark color from screenshot
+                    display: 'flex',
+                    flexDirection: 'column',
+                    color: 'white',
+                    position: 'relative'
+                }}>
+                    {/* Top Flyer Section */}
                     <div style={{
-                        position: 'absolute',
-                        inset: 0,
+                        position: 'relative',
+                        width: '100%',
+                        height: '280px',
                         backgroundImage: `url(${eventFlyer})`,
                         backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                    }} />
-
-                    {/* Gradient Overlay for Blend */}
-                    <div style={{
-                        position: 'absolute',
-                        inset: 0,
-                        background: 'linear-gradient(to bottom, transparent 0%, transparent 60%, rgba(20, 20, 35, 0.95) 95%, #151525 100%)',
-                    }} />
-
-                    <div style={{ position: 'absolute', bottom: '20px', left: 'clamp(20px, 5vw, 32px)' }}>
-                        <div className="event-badge">
+                        backgroundPosition: 'center'
+                    }}>
+                        {/* Date Badge */}
+                        <div style={{
+                            position: 'absolute',
+                            top: '20px',
+                            left: '20px',
+                            background: 'rgba(0,0,0,0.6)',
+                            backdropFilter: 'blur(8px)',
+                            padding: '6px 12px',
+                            borderRadius: '20px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            border: '1px solid rgba(255,255,255,0.1)'
+                        }}>
                             <Calendar size={14} />
-                            {eventDate}
+                            {eventDate.toUpperCase()}
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '16px' }}>
-                            <img src={logo} alt="Church Logo" style={{ height: 'clamp(40px, 6vw, 56px)', width: 'auto', filter: 'drop-shadow(0 0 15px rgba(255, 255, 255, 0.5))' }} />
-                            <h1 style={{ margin: 0, fontSize: 'clamp(20px, 5vw, 28px)', lineHeight: 1.2 }}>USM<br />Registration</h1>
+                    </div>
+
+                    <div style={{ padding: '32px' }}>
+                        {/* Logo & Title */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+                            <img src={logo} alt="USM Logo" style={{ width: '48px', height: 'auto' }} />
+                            <div>
+                                <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 800, lineHeight: 1.1 }}>USM</h2>
+                                <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 800, lineHeight: 1.1 }}>Registration</h2>
+                            </div>
+                        </div>
+
+                        {/* Tagline */}
+                        <div style={{ 
+                            borderLeft: '2px solid #8b5cf6', 
+                            paddingLeft: '16px', 
+                            marginBottom: '32px',
+                            color: 'var(--text-secondary)',
+                            fontSize: '14px',
+                            fontStyle: 'italic'
+                        }}>
+                            {eventDescription}
+                        </div>
+
+                        {/* Details List */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                            <div style={{ display: 'flex', gap: '16px' }}>
+                                <div style={{ 
+                                    width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', 
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                                }}>
+                                    <Clock size={18} color="#a1a1aa" />
+                                </div>
+                                <div>
+                                    <p style={{ color: 'white', fontWeight: 600, margin: '0 0 4px 0', fontSize: '14px' }}>{eventTime}</p>
+                                    <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '13px' }}>Doors open early</p>
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '16px' }}>
+                                <div style={{ 
+                                    width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', 
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                                }}>
+                                    <Sparkles size={18} color="#a1a1aa" />
+                                </div>
+                                <div>
+                                    <p style={{ color: 'white', fontWeight: 600, margin: '0 0 4px 0', fontSize: '14px' }}>Theme</p>
+                                    <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '13px' }}>{eventTheme}</p>
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '16px' }}>
+                                <div style={{ 
+                                    width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', 
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                                }}>
+                                    <MapPin size={18} color="#a1a1aa" />
+                                </div>
+                                <div>
+                                    <p style={{ color: 'white', fontWeight: 600, margin: '0 0 4px 0', fontSize: '14px' }}>Venue</p>
+                                    <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '13px', lineHeight: 1.4 }}>{eventVenue}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Embedded Map */}
+                        <div style={{ 
+                            marginTop: '32px', 
+                            width: '100%', 
+                            height: '180px', 
+                            borderRadius: '16px', 
+                            overflow: 'hidden',
+                            border: '1px solid rgba(255,255,255,0.1)'
+                        }}>
+                            <iframe 
+                                width="100%" 
+                                height="100%" 
+                                frameBorder="0" 
+                                scrolling="no" 
+                                marginHeight={0} 
+                                marginWidth={0} 
+                                src={`https://maps.google.com/maps?q=${encodeURIComponent(eventVenue)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                                style={{ border: 0 }}
+                                allowFullScreen
+                                loading="lazy"
+                            ></iframe>
                         </div>
                     </div>
                 </div>
 
-                {/* 2. DETAILS AREA (Bottom Half) */}
-                <div style={{ padding: 'clamp(20px, 4vw, 32px)', background: '#151525' }}>
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                    >
-                        <div className="subtitle" style={{
-                            fontStyle: 'italic',
-                            borderLeft: '3px solid var(--primary)',
-                            paddingLeft: '16px',
-                            color: 'rgba(255,255,255,0.8)',
-                            fontSize: '15px'
-                        }}>
-                            {eventDescription.split('\n').map((line, i) => (
-                                <span key={i}>{line}<br /></span>
-                            ))}
-                        </div>
+                {/* ─── RIGHT PANEL (Glass Form) ─── */}
+                <div style={{
+                    padding: '40px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    background: 'transparent'
+                }}>
+                    <h2 style={{ fontSize: '28px', color: 'white', marginBottom: '8px', fontWeight: 700 }}>Register Now</h2>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '32px' }}>Fill in your details to confirm attendance</p>
 
-                        <div className="info-details">
-                            <div className="info-detail">
-                                <div className="info-icon">
-                                    <Clock size={16} />
-                                </div>
-                                <div className="info-detail-text">
-                                    <h4>{eventTime}</h4>
-                                    <p>Doors open early</p>
-                                </div>
-                            </div>
-
-                            <div className="info-detail">
-                                <div className="info-icon">
-                                    <Sparkles size={16} />
-                                </div>
-                                <div className="info-detail-text">
-                                    <h4>Theme</h4>
-                                    <p>{eventTheme}</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        {/* Status & Phone */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                            <div className="form-group" style={{ marginBottom: 0 }}>
+                                <label className="glass-label">Status</label>
+                                <div className="glass-input-wrapper">
+                                    <Users size={16} style={{ color: 'var(--text-muted)', marginRight: '12px' }} />
+                                    <select
+                                        value={status}
+                                        onChange={(e) => setStatus(e.target.value as Status)}
+                                        disabled={!registrationOpen}
+                                        className="glass-input"
+                                    >
+                                        <option value="Member">Member</option>
+                                        <option value="Guest">Guest</option>
+                                        <option value="First Timer">First Timer</option>
+                                    </select>
                                 </div>
                             </div>
 
-                            <div className="info-detail">
-                                <div className="info-icon">
-                                    <MapPin size={16} />
+                            <div className="form-group" style={{ marginBottom: 0 }}>
+                                <label className="glass-label">Phone Number</label>
+                                <div className="glass-input-wrapper">
+                                    <Phone size={16} style={{ color: 'var(--text-muted)', marginRight: '12px' }} />
+                                    <input
+                                        type="tel"
+                                        placeholder="054 123 4567"
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
+                                        disabled={!registrationOpen}
+                                        className="glass-input"
+                                    />
                                 </div>
-                                <div className="info-detail-text">
-                                    <h4>Venue</h4>
-                                    <p>{eventVenue}</p>
-                                </div>
-                            </div>
-
-                            {/* Compact Map */}
-                            <div style={{
-                                marginTop: '20px',
-                                borderRadius: '12px',
-                                overflow: 'hidden',
-                                height: '140px',
-                                border: '1px solid rgba(255,255,255,0.1)'
-                            }}>
-                                <iframe
-                                    width="100%"
-                                    height="100%"
-                                    frameBorder="0"
-                                    scrolling="no"
-                                    marginHeight={0}
-                                    marginWidth={0}
-                                    src={`https://maps.google.com/maps?q=${eventMapQuery}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
-                                    style={{ border: 0 }}
-                                    title="Map of Event Location"
-                                ></iframe>
-                            </div>
-                        </div>
-                    </motion.div>
-                </div>
-            </div>
-
-            {/* ─── RIGHT: Registration Form ─── */}
-            <div className="form-panel">
-                <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3, duration: 0.5 }}
-                >
-                    <h2>Register Now</h2>
-                    <p className="form-subtitle">
-                        {registrationOpen
-                            ? 'Fill in your details to confirm attendance'
-                            : 'Registration for this event is currently closed'
-                        }
-                    </p>
-
-                    {!registrationOpen && (
-                        <div style={{
-                            padding: '16px', borderRadius: '12px', marginBottom: '24px',
-                            background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)',
-                            color: '#f87171', fontSize: '14px', fontWeight: 500, textAlign: 'center'
-                        }}>
-                            Registration is closed. Check back later!
-                        </div>
-                    )}
-
-                    {/* Status & Phone */}
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>Status</label>
-                            <div className="input-wrapper">
-                                <Users size={18} className="input-icon" />
-                                <select
-                                    value={status}
-                                    onChange={(e) => setStatus(e.target.value as Status)}
-                                    disabled={!registrationOpen}
-                                >
-                                    <option value="Member">Member</option>
-                                    <option value="Guest">Guest</option>
-                                    <option value="First Timer">First Timer</option>
-                                </select>
                             </div>
                         </div>
 
-                        <div className="form-group">
-                            <label>Phone Number</label>
-                            <div className="input-wrapper">
-                                <Phone size={18} className="input-icon" />
+                        {/* Full Name */}
+                        <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label className="glass-label">Full Name</label>
+                            <div className="glass-input-wrapper">
+                                <User size={16} style={{ color: 'var(--text-muted)', marginRight: '12px' }} />
                                 <input
-                                    type="tel"
-                                    placeholder="054 123 4567"
-                                    value={phone}
-                                    onChange={(e) => setPhone(e.target.value)}
+                                    type="text"
+                                    placeholder="Enter your full name"
+                                    value={fullName}
+                                    onChange={(e) => setFullName(e.target.value)}
                                     disabled={!registrationOpen}
+                                    className="glass-input"
                                 />
                             </div>
                         </div>
-                    </div>
 
-                    {/* Full Name */}
-                    <div className="form-group">
-                        <label>Full Name</label>
-                        <div className="input-wrapper">
-                            <User size={18} className="input-icon" />
-                            <input
-                                type="text"
-                                placeholder="Enter your full name"
-                                value={fullName}
-                                onChange={(e) => setFullName(e.target.value)}
-                                disabled={!registrationOpen}
-                            />
+                        {/* Email */}
+                        <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label className="glass-label">Email Address</label>
+                            <div className="glass-input-wrapper">
+                                <Mail size={16} style={{ color: 'var(--text-muted)', marginRight: '12px' }} />
+                                <input
+                                    type="email"
+                                    placeholder="Enter your email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    disabled={!registrationOpen}
+                                    className="glass-input"
+                                />
+                            </div>
                         </div>
-                    </div>
 
-                    {/* Email */}
-                    <div className="form-group">
-                        <label>Email Address</label>
-                        <div className="input-wrapper">
-                            <Mail size={18} className="input-icon" />
-                            <input
-                                type="email"
-                                placeholder="Enter your email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                disabled={!registrationOpen}
-                            />
+                        {/* Branch (Conditional) */}
+                        <AnimatePresence>
+                            {showBranch && (
+                                <motion.div
+                                    className="form-group"
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    style={{ overflow: 'hidden', marginBottom: 0 }}
+                                >
+                                    <label className="glass-label">Branch</label>
+                                    <div className="glass-input-wrapper">
+                                        <Building2 size={16} style={{ color: 'var(--text-muted)', marginRight: '12px' }} />
+                                        <select
+                                            value={branch}
+                                            onChange={(e) => setBranch(e.target.value)}
+                                            disabled={!registrationOpen}
+                                            className="glass-input"
+                                        >
+                                            {branches.length === 0 && <option disabled>Loading...</option>}
+                                            {branches.map((b) => <option key={b._id} value={b.name}>{b.name}</option>)}
+                                        </select>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* Location */}
+                        <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label className="glass-label">Location</label>
+                            <div className="glass-input-wrapper">
+                                <MapPin size={16} style={{ color: 'var(--text-muted)', marginRight: '12px' }} />
+                                <input
+                                    type="text"
+                                    placeholder="Your location (e.g., Kasoa, Accra)"
+                                    value={location}
+                                    onChange={(e) => setLocation(e.target.value)}
+                                    disabled={!registrationOpen}
+                                    className="glass-input"
+                                />
+                            </div>
                         </div>
+
+                        {/* Invited By */}
+                        <AnimatePresence>
+                            {showInvitedBy && (
+                                <motion.div
+                                    className="form-group"
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    style={{ overflow: 'hidden', marginBottom: 0 }}
+                                >
+                                    <label className="glass-label">Invited By</label>
+                                    <div className="glass-input-wrapper">
+                                        <UserPlus size={16} style={{ color: 'var(--text-muted)', marginRight: '12px' }} />
+                                        <input
+                                            type="text"
+                                            placeholder="Who invited you?"
+                                            value={invitee}
+                                            onChange={(e) => setInvitee(e.target.value)}
+                                            disabled={!registrationOpen}
+                                            className="glass-input"
+                                        />
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        <button
+                            onClick={handleRegister}
+                            disabled={loading || !registrationOpen}
+                            style={{
+                                marginTop: '16px',
+                                height: '48px',
+                                background: '#000000',
+                                color: 'white',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                borderRadius: '12px',
+                                fontSize: '15px',
+                                fontWeight: 600,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                cursor: (loading || !registrationOpen) ? 'not-allowed' : 'pointer',
+                                opacity: (loading || !registrationOpen) ? 0.7 : 1,
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            {loading ? 'Registering...' : <>Register <ChevronRight size={18} /></>}
+                        </button>
                     </div>
 
-                    {/* Branch (Conditional) */}
-                    <AnimatePresence>
-                        {showBranch && (
-                            <motion.div
-                                className="form-group"
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                style={{ overflow: 'hidden' }}
-                            >
-                                <label>Branch</label>
-                                <div className="input-wrapper">
-                                    <Building2 size={18} className="input-icon" />
-                                    <select
-                                        value={branch}
-                                        onChange={(e) => setBranch(e.target.value)}
-                                        disabled={!registrationOpen}
-                                    >
-                                        {branches.length === 0 && (
-                                            <option disabled>Loading branches...</option>
-                                        )}
-                                        {branches.map((b) => (
-                                            <option key={b.id} value={b.name}>
-                                                {b.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    {/* Location (Globally Required) */}
-                    <div className="form-group">
-                        <label>Location</label>
-                        <div className="input-wrapper">
-                            <MapPin size={18} className="input-icon" />
-                            <input
-                                type="text"
-                                placeholder="Your location (e.g., Kasoa, Accra)"
-                                value={location}
-                                onChange={(e) => setLocation(e.target.value)}
-                                disabled={!registrationOpen}
-                            />
-                        </div>
+                    <div style={{ marginTop: 'auto', paddingTop: '24px', textAlign: 'center' }}>
+                        <a href="/login" style={{ fontSize: '13px', color: 'var(--text-muted)', textDecoration: 'none' }}>Admin Login</a>
                     </div>
-
-                    {/* Invited By */}
-                    <AnimatePresence>
-                        {showInvitedBy && (
-                            <motion.div
-                                className="form-group"
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                style={{ overflow: 'hidden' }}
-                            >
-                                <label>Invited By</label>
-                                <div className="input-wrapper">
-                                    <UserPlus size={18} className="input-icon" />
-                                    <input
-                                        type="text"
-                                        placeholder="Who invited you?"
-                                        value={invitee}
-                                        onChange={(e) => setInvitee(e.target.value)}
-                                        disabled={!registrationOpen}
-                                    />
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    <motion.button
-                        whileHover={!loading && registrationOpen ? { scale: 1.02, boxShadow: '0 12px 40px rgba(99, 102, 241, 0.6)' } : {}}
-                        whileTap={!loading && registrationOpen ? { scale: 0.98 } : {}}
-                        className="btn-submit"
-                        onClick={handleRegister}
-                        disabled={loading || !registrationOpen}
-                        style={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            gap: '8px',
-                            background: registrationOpen
-                                ? 'linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%)'
-                                : 'rgba(255,255,255,0.1)',
-                            boxShadow: registrationOpen ? '0 8px 32px rgba(99, 102, 241, 0.4)' : 'none',
-                            border: '1px solid rgba(255,255,255,0.2)',
-                            textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                            cursor: registrationOpen ? 'pointer' : 'not-allowed'
-                        }}
-                    >
-                        {loading ? (
-                            <>
-                                <span className="spinner" />
-                                Registering...
-                            </>
-                        ) : (
-                            <>
-                                Register <ChevronRight size={18} style={{ verticalAlign: 'middle', marginLeft: 4 }} />
-                            </>
-                        )}
-                    </motion.button>
-                </motion.div>
-
-                {/* Admin Link (Subtle) */}
-                <div style={{ marginTop: 'auto', paddingTop: '20px', textAlign: 'center' }}>
-                    <a href="/login" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.2)', textDecoration: 'none' }}>Admin Login</a>
                 </div>
-            </div>
-        </motion.div>
+            </motion.div>
+        </div>
     )
 }

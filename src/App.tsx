@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
-import { useEffect, useState } from 'react'
-import { supabase } from './supabaseClient'
+import { useConvexAuth } from "convex/react"
 import Registration from './Component/Registration'
 import SuccessPage from './Component/SuccessPage'
 import AdminLogin from './Component/AdminLogin'
@@ -10,28 +9,21 @@ import AdminLayout from './Layouts/AdminLayout'
 import AdminRegister from './Component/AdminRegister'
 import AdminReports from './Component/AdminReports'
 import EventManagement from './Component/EventManagement'
-import type { Session } from '@supabase/supabase-js'
+import ScannerMode from './Component/ScannerMode'
 
 // Protected Route Component
 const ProtectedRoute = () => {
-  const [loading, setLoading] = useState(true)
-  const [authenticated, setAuthenticated] = useState(false)
+  const { isLoading, isAuthenticated } = useConvexAuth();
+  const hasLocalToken = !!localStorage.getItem('usm_admin_token');
+  const role = localStorage.getItem('usm_admin_role');
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setAuthenticated(!!session)
-      setLoading(false)
-    })
+  if (isLoading) return null
+  if (!isAuthenticated && !hasLocalToken) return <Navigate to="/login" replace />
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session: Session | null) => {
-      setAuthenticated(!!session)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
-
-  if (loading) return null
-  if (!authenticated) return <Navigate to="/login" replace />
+  // Role based redirection
+  if (role === 'scanner' && window.location.pathname !== '/admin/scan') {
+    return <Navigate to="/admin/scan" replace />
+  }
 
   return <Outlet />
 }
@@ -50,6 +42,7 @@ function App() {
 
           {/* Protected Admin Routes */}
           <Route element={<ProtectedRoute />}>
+            <Route path="/admin/scan" element={<ScannerMode />} />
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
               <Route path="register" element={<AdminRegister />} />
