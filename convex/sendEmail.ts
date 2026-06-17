@@ -1,4 +1,4 @@
-import { action } from "../_generated/server";
+import { action } from "./_generated/server";
 import { v } from "convex/values";
 import { Resend } from "resend";
 
@@ -9,9 +9,11 @@ export const sendWelcomeEmail = action({
       eventId: v.id("events"), 
       logId: v.id("attendanceLogs") 
   },
-  handler: async (ctx, args) => {
+  handler: async (_, args) => {
+    // @ts-ignore
+    const apiKey = process.env.RESEND_API_KEY;
     // In production, we should get this from env vars, 
-    // but for fast implementation with missing keys, we handle it safely
+    // @ts-ignore
     const resendKey = process.env.RESEND_API_KEY;
     if (!resendKey) {
         console.warn("RESEND_API_KEY is not set. Skipping email delivery.");

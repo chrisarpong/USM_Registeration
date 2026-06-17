@@ -1,10 +1,9 @@
 import { useState, useRef } from 'react'
-import { useAllEvents, formatEventDate } from '../hooks/useEvents'
+import { useQuery, useMutation } from "convex/react"
+import { api } from "../../convex/_generated/api"
+import { formatEventDate } from '../hooks/useEvents'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'react-hot-toast'
-import type { USMEvent } from '../types'
-import { useMutation } from "convex/react"
-import { api } from "../../convex/_generated/api"
 import type { Id } from "../../convex/_generated/dataModel"
 
 import {
@@ -40,7 +39,7 @@ const DEFAULT_FORM: EventFormData = {
 }
 
 export default function EventManagement() {
-    const { events, loading, refetch } = useAllEvents()
+    const events = useQuery(api.events.getEvents)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingEvent, setEditingEvent] = useState<any | null>(null)
     const [formData, setFormData] = useState<EventFormData>(DEFAULT_FORM)
@@ -268,6 +267,9 @@ export default function EventManagement() {
                     <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'white', fontFamily: 'Outfit, sans-serif', marginBottom: '4px' }}>
                         Event Management
                     </h2>
+                    <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>
+                        {events === undefined ? 'Loading...' : `Total: ${events.length}`}
+                    </span>
                     <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '14px' }}>
                         Create, edit, and activate USM events. Only one event can be active at a time.
                     </p>
@@ -296,7 +298,7 @@ export default function EventManagement() {
             </div>
 
             {/* Events Grid */}
-            {loading ? (
+            {events === undefined ? (
                 <div style={{ textAlign: 'center', padding: '60px', color: 'rgba(255,255,255,0.5)' }}>Loading events...</div>
             ) : events.length === 0 ? (
                 <div style={{

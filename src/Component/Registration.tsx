@@ -79,7 +79,7 @@ export default function Registration() {
         setLoading(true)
         try {
             const logId = await registerAttendee({
-                event_id: event._id,
+                event_id: (event as any)._id,
                 full_name: fullName,
                 email,
                 phone_number: phone,
@@ -95,7 +95,7 @@ export default function Registration() {
                 sendWelcomeEmail({
                     email,
                     name: fullName,
-                    eventId: event._id,
+                    eventId: (event as any)._id,
                     logId: logId as any
                 }).catch(e => console.error("Email failed to send", e))
             }
@@ -138,7 +138,14 @@ export default function Registration() {
     const eventVenue = event.venue || '3rd floor ORA black star building, Opposite Ofankor Shell filling station'
     const eventTheme = event.theme || 'The Walking of Miracle 2.0'
     const eventDescription = event.description || 'The Unending Spirit meeting returns. Get ready🔥'
-    const registrationOpen = event.isRegistrationOpen ?? true
+    const registrationOpen = event?.is_registration_open ?? false;
+    if (!registrationOpen) {
+        return (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'white' }}>
+                Registration is currently closed.
+            </div>
+        )
+    }
     const eventFlyer = event.flyer_url || flyerFallback
 
     return (

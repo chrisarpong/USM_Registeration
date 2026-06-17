@@ -8,11 +8,13 @@
  * @module
  */
 
+import type * as adminAuth from "../adminAuth.js";
 import type * as attendanceLogs from "../attendanceLogs.js";
 import type * as auth from "../auth.js";
 import type * as branches from "../branches.js";
 import type * as events from "../events.js";
 import type * as importData from "../importData.js";
+import type * as sendEmail from "../sendEmail.js";
 import type * as storage from "../storage.js";
 
 import type {
@@ -22,11 +24,13 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  adminAuth: typeof adminAuth;
   attendanceLogs: typeof attendanceLogs;
   auth: typeof auth;
   branches: typeof branches;
   events: typeof events;
   importData: typeof importData;
+  sendEmail: typeof sendEmail;
   storage: typeof storage;
 }>;
 

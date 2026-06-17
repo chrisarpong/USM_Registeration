@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
-import { Calendar, Clock, MapPin, Sparkles, Share2 } from 'lucide-react';
+import { Calendar, MapPin, Share2, Sparkles } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import logo from '../assets/logo.png';
 

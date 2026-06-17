@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FileDown, Calendar, Filter, CalendarDays, Clock, CheckCircle, MapPin, BarChart, Users, TrendingUp } from 'lucide-react'
+import { Calendar, BarChart as BarChartIcon, Filter, CalendarDays, Clock, CheckCircle, MapPin, TrendingUp, FileDown } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { formatEventDate } from '../hooks/useEvents'
 
@@ -52,12 +52,12 @@ export default function AdminReports() {
 
         if (startDate) {
             const start = new Date(startDate).getTime()
-            filtered = filtered.filter(l => new Date(l.created_at).getTime() >= start)
+            filtered = filtered.filter(l => new Date(l.created_at || new Date()).getTime() >= start)
         }
         
         if (endDate) {
             const end = new Date(endDate + 'T23:59:59').getTime()
-            filtered = filtered.filter(l => new Date(l.created_at).getTime() <= end)
+            filtered = filtered.filter(l => new Date(l.created_at || new Date()).getTime() <= end)
         }
 
         if (statusFilter !== 'All') {
@@ -68,7 +68,7 @@ export default function AdminReports() {
 
         if (timeOfDayFilter !== 'All') {
             filtered = filtered.filter(l => {
-                const hour = new Date(l.created_at).getHours()
+                const hour = new Date(l.created_at || new Date()).getHours()
                 if (timeOfDayFilter === 'Morning') return hour < 12
                 if (timeOfDayFilter === 'Afternoon') return hour >= 12 && hour < 17
                 if (timeOfDayFilter === 'Evening') return hour >= 17
@@ -120,7 +120,7 @@ export default function AdminReports() {
 
         const dataRows = reportData.map(row => {
             return [
-                new Date(row.created_at).toLocaleString(),
+                new Date(row.created_at || new Date()).toLocaleString(),
                 `"${row.full_name}"`,
                 `"${row.phone_number}"`,
                 row.status,
@@ -192,7 +192,7 @@ export default function AdminReports() {
                 <div className="form-panel" style={{ border: 'none', background: 'transparent', padding: '40px' }}>
 
                     <h2 style={{ fontSize: '24px', marginBottom: '8px', color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <BarChart size={24} color="var(--primary)" /> Smart Report Generator
+                        <BarChartIcon size={24} color="var(--primary)" /> Smart Report Generator
                     </h2>
                     <p className="form-subtitle">Use advanced filters to slice attendance data precisely as you need it.</p>
 

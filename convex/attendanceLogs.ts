@@ -30,15 +30,16 @@ export const getPaginatedLogs = query({
     searchTerm: v.optional(v.string())
   },
   handler: async (ctx, args) => {
-    let q = ctx.db.query("attendanceLogs");
-    
+    let results;
     if (args.event_id) {
-      q = q.withIndex("by_event", (q) => q.eq("event_id", args.event_id));
+      results = await ctx.db.query("attendanceLogs")
+          .withIndex("by_event", (q) => q.eq("event_id", args.event_id as any))
+          .paginate(args.paginationOpts);
     } else {
-      q = q.order("desc");
+      results = await ctx.db.query("attendanceLogs")
+          .order("desc")
+          .paginate(args.paginationOpts);
     }
-
-    let results = await q.paginate(args.paginationOpts);
 
     if (args.branch || args.searchTerm) {
         // Fallback filter in memory for pagination chunk if filters applied
@@ -62,11 +63,14 @@ export const getPaginatedLogs = query({
 export const getLogStats = query({
   args: { event_id: v.optional(v.id("events")) },
   handler: async (ctx, args) => {
-    let q = ctx.db.query("attendanceLogs");
+    let all;
     if (args.event_id) {
-      q = q.withIndex("by_event", (q) => q.eq("event_id", args.event_id));
+      all = await ctx.db.query("attendanceLogs")
+          .withIndex("by_event", (q) => q.eq("event_id", args.event_id as any))
+          .collect();
+    } else {
+      all = await ctx.db.query("attendanceLogs").collect();
     }
-    const all = await q.collect();
     let members = 0, guests = 0, firstTimers = 0, checkedIn = 0;
     all.forEach(l => {
       if (l.status === 'Member') members++;

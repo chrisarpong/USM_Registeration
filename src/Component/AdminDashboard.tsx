@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Users, UserCheck, UserPlus, RefreshCw, Edit2, Trash2, Download, CheckCircle, XCircle, Sparkles, Scan, CalendarDays } from 'lucide-react'
+import { Users, UserCheck, UserPlus, Edit2, Trash2, Download, CheckCircle, XCircle, Sparkles, Scan, CalendarDays } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import EditGuestModal from './EditGuestModal'
 import RegistrationChart from './RegistrationChart'
@@ -101,9 +101,9 @@ export default function AdminDashboard() {
 
     const handleQRScan = async (decodedText: string) => {
         const registrationId = decodedText as Id<"attendanceLogs">
-        if (!logs) return toast.error('Logs not loaded')
+        if (!paginatedLogs) return toast.error('Logs not loaded')
 
-        const data = logs.find((l: any) => l._id === registrationId)
+        const data = paginatedLogs.find((l: any) => l._id === registrationId)
 
         if (!data) {
             return toast.error('Attendee not found in database')
@@ -118,33 +118,6 @@ export default function AdminDashboard() {
             icon: '✅',
             duration: 4000
         })
-    }
-
-    const exportToCSV = () => {
-        if (!logs) return
-        const headers = ['Time', 'Name', 'Status', 'Branch', 'Phone', 'Invited By', 'Location']
-        const csvContent = [
-            headers.join(','),
-            ...logs.map((log: any) => [
-                new Date(log.created_at).toLocaleString(),
-                `"${log.full_name || ''}"`,
-                log.status,
-                `"${log.branch || ''}"`,
-                log.phone_number,
-                `"${log.invited_by || ''}"`,
-                `"${log.location || ''}"`
-            ].join(','))
-        ].join('\n')
-
-        const selectedEvent = events?.find(e => e._id === selectedEventId)
-        const eventLabel = selectedEvent ? formatEventDate(selectedEvent.date) : 'All'
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-        const link = document.createElement('a')
-        link.href = URL.createObjectURL(blob)
-        link.download = `USM_${eventLabel}_Export_${new Date().toISOString().split('T')[0]}.csv`
-        link.click()
-        toast.success('Export downloaded')
     }
 
     const selectedEvent = events?.find(e => e._id === selectedEventId)
@@ -175,7 +148,6 @@ export default function AdminDashboard() {
                     value={selectedEventId}
                     onChange={(e) => {
                         setSelectedEventId(e.target.value)
-                        setPage(0)
                     }}
                     style={{
                         padding: '10px 16px',
@@ -208,7 +180,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Stats Row */}
-            {logs === undefined ? (
+            {paginatedLogs === undefined ? (
                 <StatsGridSkeleton />
             ) : (
                 <div className="stats-grid">
@@ -281,19 +253,27 @@ export default function AdminDashboard() {
                 </select>
 
                 <div style={{ marginLeft: 'auto', color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>
-                    Showing {paginatedLogs.length} of {stats.total} records
+                    Showing {paginatedLogs?.length || 0} of {stats?.total || 0} records
                 </div>
 
-                <button
-                    onClick={exportToCSV}
-                    title="Export to CSV"
-                    style={{
-                        padding: '10px 16px', background: 'rgba(59, 130, 246, 0.1)',
-                        border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '10px',
-                        color: '#60a5fa', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 500
-                    }}
-                >
-                    <Download size={16} /> Export
+                <button onClick={() => {
+                    const csvContent = "data:text/csv;charset=utf-8," 
+                        + "Name,Phone,Email,Status,Branch,Location,Invited By,Checked In,Date\n"
+                        + paginatedLogs?.map((log: any) => 
+                            `"${log.full_name}","${log.phone_number}","${log.email || ''}","${log.status}","${log.branch || ''}","${log.location || ''}","${log.invited_by || ''}","${log.checked_in ? 'Yes' : 'No'}","${new Date(log._creationTime).toLocaleDateString()}"`
+                        ).join("\n");
+                    const encodedUri = encodeURI(csvContent);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", encodedUri);
+                    link.setAttribute("download", `usm_attendance_${new Date().toISOString().split('T')[0]}.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                }} className="btn-secondary" style={{
+                    padding: '10px 16px', background: 'rgba(59, 130, 246, 0.1)',
+                    border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '10px',
+                    color: '#60a5fa', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 500
+                }}>
+                    <Download size={16} /> Export CSV
                 </button>
 
                 <button
@@ -310,7 +290,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Data Table */}
-            {logs === undefined ? (
+            {paginatedLogs === undefined ? (
                 <TableSkeleton />
             ) : (
                 <div className="glass-table-container">
@@ -334,7 +314,15 @@ export default function AdminDashboard() {
                                     {searchTerm ? `No records found matching "${searchTerm}"` : 'No registrations for this event yet'}
                                 </td></tr>
                             ) : (
-                                paginatedLogs.map((log: any) => (
+                                paginatedLogs.filter((log: any) => {
+                                    const matchSearch =
+                                        log.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                        log.phone_number?.includes(searchTerm) ||
+                                        log.branch?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                        log.location?.toLowerCase().includes(searchTerm.toLowerCase());
+                                    const matchBranch = branchFilter ? log.branch === branchFilter : true;
+                                    return matchSearch && matchBranch;
+                                }).map((log: any) => (
                                     <tr key={log._id}>
                                     <td style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px' }}>
                                         <div style={{ fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginBottom: '4px' }}>
