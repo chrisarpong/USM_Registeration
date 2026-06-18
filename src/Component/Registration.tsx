@@ -28,6 +28,7 @@ export default function Registration() {
     const [branch, setBranch] = useState('')
     const [location, setLocation] = useState('')
     const [invitee, setInvitee] = useState('')
+    const [heardFrom, setHeardFrom] = useState('')
 
     // UI state
     const branchesData = useQuery(api.branches.getBranches)
@@ -87,6 +88,7 @@ export default function Registration() {
                 branch: showBranch ? branch : undefined,
                 location,
                 invited_by: showInvitedBy ? invitee : undefined,
+                heard_from: heardFrom.trim() || undefined,
                 is_admin_registration: false
             })
 
@@ -107,6 +109,7 @@ export default function Registration() {
             setPhone('')
             setLocation('')
             setInvitee('')
+            setHeardFrom('')
             setStatus('Member')
 
         } catch (error: unknown) {
@@ -447,26 +450,26 @@ export default function Registration() {
                             )}
                         </AnimatePresence>
 
+                        {/* Heard From */}
+                        <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label className="glass-label">Where did you hear about us? <span style={{ textTransform: 'none', color: 'rgba(255,255,255,0.4)', fontSize: '11px', fontWeight: 400 }}>(Optional)</span></label>
+                            <div className="glass-input-wrapper">
+                                <UserPlus size={16} style={{ color: 'var(--text-muted)', marginRight: '12px' }} />
+                                <input
+                                    type="text"
+                                    placeholder="e.g., Facebook, Friend, Flyer"
+                                    value={heardFrom}
+                                    onChange={(e) => setHeardFrom(e.target.value)}
+                                    disabled={!registrationOpen}
+                                    className="glass-input"
+                                />
+                            </div>
+                        </div>
+
                         <button
                             onClick={handleRegister}
                             disabled={loading || !registrationOpen}
-                            style={{
-                                marginTop: '16px',
-                                height: '48px',
-                                background: '#000000',
-                                color: 'white',
-                                border: '1px solid rgba(255,255,255,0.1)',
-                                borderRadius: '12px',
-                                fontSize: '15px',
-                                fontWeight: 600,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px',
-                                cursor: (loading || !registrationOpen) ? 'not-allowed' : 'pointer',
-                                opacity: (loading || !registrationOpen) ? 0.7 : 1,
-                                transition: 'all 0.2s'
-                            }}
+                            className="premium-submit-btn"
                         >
                             {loading ? 'Registering...' : <>Register <ChevronRight size={18} /></>}
                         </button>

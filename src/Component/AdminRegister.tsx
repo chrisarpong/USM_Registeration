@@ -24,6 +24,7 @@ export default function AdminRegister() {
     const [branch, setBranch] = useState('')
     const [location, setLocation] = useState('')
     const [invitee, setInvitee] = useState('')
+    const [heardFrom, setHeardFrom] = useState('')
 
     // UI state
     const branchesData = useQuery(api.branches.getBranches)
@@ -61,6 +62,7 @@ export default function AdminRegister() {
         setBranch(branches.length > 0 ? branches[0].name : '')
         setLocation('')
         setInvitee('')
+        setHeardFrom('')
     }
 
     const handleRegister = async () => {
@@ -88,6 +90,7 @@ export default function AdminRegister() {
                 branch: finalBranch,
                 location: location.trim(),
                 invited_by: showInvitedBy ? invitee.trim() || undefined : undefined,
+                heard_from: heardFrom.trim() || undefined,
                 event_id: event.id as Id<"events">,
                 is_admin_registration: true,
             })
@@ -264,6 +267,20 @@ export default function AdminRegister() {
                             </div>
                         </div>
                     )}
+
+                    {/* Heard From (Optional) */}
+                    <div className="form-group">
+                        <label>Where did they hear about us? <span style={{ textTransform: 'none', color: 'rgba(255,255,255,0.4)', fontSize: '11px', fontWeight: 400 }}>(Optional)</span></label>
+                        <div className="input-wrapper">
+                            <UserPlus size={18} className="input-icon" />
+                            <input
+                                type="text"
+                                placeholder="e.g., Facebook, Friend, Flyer"
+                                value={heardFrom}
+                                onChange={(e) => setHeardFrom(e.target.value)}
+                            />
+                        </div>
+                    </div>
 
                     <button
                         className="btn-submit"

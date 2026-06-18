@@ -42,6 +42,7 @@ export default defineSchema({
     branch: v.optional(v.string()),
     status: v.string(), // "Member", "Guest", "First Timer"
     invited_by: v.optional(v.string()),
+    heard_from: v.optional(v.string()),
     location: v.optional(v.string()),
     is_admin_registration: v.optional(v.boolean()),
     qr_code: v.optional(v.string()),

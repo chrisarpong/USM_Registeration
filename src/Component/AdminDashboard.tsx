@@ -258,9 +258,9 @@ export default function AdminDashboard() {
 
                 <button onClick={() => {
                     const csvContent = "data:text/csv;charset=utf-8," 
-                        + "Name,Phone,Email,Status,Branch,Location,Invited By,Checked In,Date\n"
+                        + "Name,Phone,Email,Status,Branch,Location,Invited By,Heard From,Checked In,Date\n"
                         + paginatedLogs?.map((log: any) => 
-                            `"${log.full_name}","${log.phone_number}","${log.email || ''}","${log.status}","${log.branch || ''}","${log.location || ''}","${log.invited_by || ''}","${log.checked_in ? 'Yes' : 'No'}","${new Date(log._creationTime).toLocaleDateString()}"`
+                            `"${log.full_name}","${log.phone_number}","${log.email || ''}","${log.status}","${log.branch || ''}","${log.location || ''}","${log.invited_by || ''}","${log.heard_from || ''}","${log.checked_in ? 'Yes' : 'No'}","${new Date(log._creationTime).toLocaleDateString()}"`
                         ).join("\n");
                     const encodedUri = encodeURI(csvContent);
                     const link = document.createElement("a");
@@ -304,13 +304,14 @@ export default function AdminDashboard() {
                                 <th>Location</th>
                                 <th>Phone</th>
                                 <th>Invited By</th>
+                                <th>Heard From</th>
                                 <th style={{ textAlign: 'center' }}>Check-In</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {paginatedLogs.length === 0 ? (
-                                <tr><td colSpan={9} style={{ textAlign: 'center', padding: '40px' }}>
+                                <tr><td colSpan={10} style={{ textAlign: 'center', padding: '40px' }}>
                                     {searchTerm ? `No records found matching "${searchTerm}"` : 'No registrations for this event yet'}
                                 </td></tr>
                             ) : (
@@ -353,6 +354,7 @@ export default function AdminDashboard() {
                                     <td style={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis' }} title={log.location || '-'}>{log.location || '-'}</td>
                                     <td>{log.phone_number}</td>
                                     <td style={{ color: 'rgba(255,255,255,0.6)' }}>{log.invited_by || '-'}</td>
+                                    <td style={{ color: 'rgba(255,255,255,0.6)', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis' }} title={log.heard_from || '-'}>{log.heard_from || '-'}</td>
                                     <td style={{ textAlign: 'center' }}>
                                         <motion.button
                                             whileHover={{ scale: 1.05, boxShadow: log.checked_in ? '0 4px 15px rgba(16, 185, 129, 0.2)' : '0 4px 15px rgba(255,255,255,0.1)' }}

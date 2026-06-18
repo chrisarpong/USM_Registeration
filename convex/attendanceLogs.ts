@@ -92,6 +92,7 @@ export const registerAttendee = mutation({
     branch: v.optional(v.string()),
     location: v.optional(v.string()),
     invited_by: v.optional(v.string()),
+    heard_from: v.optional(v.string()),
     is_admin_registration: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -125,6 +126,7 @@ export const updateLog = mutation({
     status: v.optional(v.string()),
     email: v.optional(v.string()),
     invited_by: v.optional(v.string()),
+    heard_from: v.optional(v.string()),
     location: v.optional(v.string()),
   },
   handler: async (ctx, args) => {

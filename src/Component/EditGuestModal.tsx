@@ -13,6 +13,7 @@ type Log = {
     status: string
     branch?: string
     invited_by?: string
+    heard_from?: string
     location?: string
 }
 
@@ -38,6 +39,7 @@ export default function EditGuestModal({ isOpen, onClose, log }: Props) {
                 status: log.status,
                 branch: log.branch,
                 invited_by: log.invited_by,
+                heard_from: log.heard_from,
                 location: log.location
             })
         }
@@ -64,6 +66,7 @@ export default function EditGuestModal({ isOpen, onClose, log }: Props) {
                 status: payloadToSave.status,
                 branch: payloadToSave.branch,
                 invited_by: payloadToSave.invited_by,
+                heard_from: payloadToSave.heard_from,
                 location: payloadToSave.location,
             })
             toast.success('Record updated successfully')
@@ -193,6 +196,20 @@ export default function EditGuestModal({ isOpen, onClose, log }: Props) {
                                 </div>
                             </div>
                         )}
+
+                        {/* Heard From */}
+                        <div>
+                            <label style={{ display: 'block', fontSize: '13px', color: 'gray', marginBottom: '6px' }}>Where did they hear about us?</label>
+                            <div className="input-wrapper" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                <UserPlus size={16} color="gray" style={{ marginLeft: '12px' }} />
+                                <input
+                                    value={formData.heard_from || ''}
+                                    onChange={e => handleChange('heard_from', e.target.value)}
+                                    placeholder="e.g., Facebook, Friend, Flyer"
+                                    style={{ background: 'transparent', border: 'none', color: 'white', padding: '10px' }}
+                                />
+                            </div>
+                        </div>
 
                         {/* Location (Globally Required) */}
                         <div>
