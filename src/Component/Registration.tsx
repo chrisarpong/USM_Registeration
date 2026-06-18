@@ -149,19 +149,10 @@ export default function Registration() {
     const eventFlyer = event.flyer_url || flyerFallback
 
     return (
-        <div className="page-wrapper" style={{ 
-            minHeight: '100vh', 
-            width: '100%',
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
-            position: 'relative',
-            overflow: 'hidden',
-            padding: '20px'
-        }}>
+        <div className="page-wrapper">
             {/* Global Background Image (Blurred) */}
             <div style={{
-                position: 'absolute',
+                position: 'fixed',
                 inset: -20,
                 backgroundImage: `url(${bgImage})`,
                 backgroundSize: 'cover',
@@ -171,41 +162,20 @@ export default function Registration() {
             }} />
             
             <div style={{
-                position: 'absolute',
+                position: 'fixed',
                 inset: 0,
                 background: 'rgba(0,0,0,0.3)',
                 zIndex: -1
             }} />
 
             <motion.div
+                className="registration-glass-layout"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'minmax(350px, 1fr) minmax(400px, 1.2fr)',
-                    width: '100%',
-                    maxWidth: '1000px',
-                    minHeight: '700px',
-                    background: 'rgba(30, 30, 35, 0.4)', // Translucent main background
-                    backdropFilter: 'blur(30px)',
-                    WebkitBackdropFilter: 'blur(30px)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '24px',
-                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-                    overflow: 'hidden',
-                    position: 'relative',
-                    zIndex: 10
-                }}
             >
                 {/* ─── LEFT PANEL (Dark Solid/Translucent) ─── */}
-                <div style={{
-                    background: '#16161c', // Solid dark color from screenshot
-                    display: 'flex',
-                    flexDirection: 'column',
-                    color: 'white',
-                    position: 'relative'
-                }}>
+                <div className="registration-left-panel">
                     {/* Top Flyer Section */}
                     <div style={{
                         position: 'relative',
@@ -326,19 +296,13 @@ export default function Registration() {
                 </div>
 
                 {/* ─── RIGHT PANEL (Glass Form) ─── */}
-                <div style={{
-                    padding: '40px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    background: 'transparent'
-                }}>
+                <div className="registration-right-panel">
                     <h2 style={{ fontSize: '28px', color: 'white', marginBottom: '8px', fontWeight: 700 }}>Register Now</h2>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '32px' }}>Fill in your details to confirm attendance</p>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                         {/* Status & Phone */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <div className="form-grid-2">
                             <div className="form-group" style={{ marginBottom: 0 }}>
                                 <label className="glass-label">Status</label>
                                 <div className="glass-input-wrapper">
