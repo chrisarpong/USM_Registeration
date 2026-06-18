@@ -180,11 +180,20 @@ export default function Registration() {
                     <div style={{
                         position: 'relative',
                         width: '100%',
-                        height: '280px',
-                        backgroundImage: `url(${eventFlyer})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center'
+                        backgroundColor: '#000',
+                        display: 'flex',
+                        flexDirection: 'column'
                     }}>
+                        <img 
+                            src={eventFlyer} 
+                            alt="Event Flyer" 
+                            style={{ 
+                                width: '100%', 
+                                height: 'auto', 
+                                display: 'block',
+                                objectFit: 'contain'
+                            }} 
+                        />
                         {/* Date Badge */}
                         <div style={{
                             position: 'absolute',
@@ -199,7 +208,8 @@ export default function Registration() {
                             gap: '6px',
                             fontSize: '12px',
                             fontWeight: 600,
-                            border: '1px solid rgba(255,255,255,0.1)'
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            zIndex: 2
                         }}>
                             <Calendar size={14} />
                             {eventDate.toUpperCase()}
