@@ -6,9 +6,9 @@ export const login = mutation({
   handler: async (ctx, args) => {
     // Use an environment variable for the admin password, falling back to the hardcoded one 
     // ONLY as a temporary measure until the env var is set in the Convex dashboard.
-    const adminPassword = process.env.ADMIN_PASSWORD || '12345admin';
-    if (args.email.toLowerCase() === 'nadia@usm.com' && args.password === adminPassword) {
-      return { success: true, role: 'superadmin', name: 'Nadia', token: 'superadmin_token_xyz' };
+    const adminPassword = (process.env as any).ADMIN_PASSWORD || '12345admin';
+    if (args.email.toLowerCase() === 'admin@usm.com' && args.password === adminPassword) {
+      return { success: true, role: 'superadmin', name: 'Admin', token: 'superadmin_token_xyz' };
     }
     // Add logic for scanners if we create an adminUsers table
     const user = await ctx.db.query("adminUsers").filter(q => q.eq(q.field("email"), args.email)).first();
@@ -18,4 +18,24 @@ export const login = mutation({
     
     return { success: false, error: "Invalid credentials" };
   },
+});
+
+export const signUp = mutation({
+  args: { email: v.string(), password: v.string() },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db.query("adminUsers").filter(q => q.eq(q.field("email"), args.email)).first();
+    if (existing) {
+        return { success: false, error: "Account already exists" };
+    }
+    
+    const userId = await ctx.db.insert("adminUsers", {
+        name: "Admin",
+        email: args.email,
+        password: args.password,
+        role: "superadmin",
+        created_at: new Date().toISOString()
+    });
+
+    return { success: true, role: "superadmin", name: "Admin", token: `token_${userId}` };
+  }
 });

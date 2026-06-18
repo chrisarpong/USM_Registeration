@@ -3,6 +3,7 @@ import { Html5QrcodeScanner } from 'html5-qrcode';
 import { Camera, LogOut, CheckCircle, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import { useAuthActions } from "@convex-dev/auth/react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
@@ -13,11 +14,10 @@ export default function ScannerMode() {
     const logs = useQuery(api.attendanceLogs.getAllLogs); // For quick validation locally
     
     const [lastScanned, setLastScanned] = useState<{name: string, status: boolean} | null>(null);
+    const { signOut } = useAuthActions();
 
-    const handleLogout = () => {
-        localStorage.removeItem('usm_admin_token');
-        localStorage.removeItem('usm_admin_role');
-        localStorage.removeItem('usm_admin_name');
+    const handleLogout = async () => {
+        await signOut();
         navigate('/login');
     };
 
@@ -34,15 +34,15 @@ export default function ScannerMode() {
                 if (lastScanned) return;
 
                 try {
-                    const logId = decodedText as Id<"attendanceLogs">;
-                    const log = logs?.find(l => l._id === logId);
+                    const scannedUuid = decodedText;
+                    const log = logs?.find(l => l.qr_uuid === scannedUuid);
                     
                     if (log) {
                         if (log.checked_in) {
                             toast.error(`${log.full_name} is already checked in!`);
                             setLastScanned({ name: log.full_name, status: false });
                         } else {
-                            await toggleCheckIn({ id: logId, status: true });
+                            await toggleCheckIn({ id: log._id, status: true });
                             toast.success(`${log.full_name} checked in successfully!`);
                             setLastScanned({ name: log.full_name, status: true });
                         }

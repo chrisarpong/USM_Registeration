@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { getAuthUserId } from "@convex-dev/auth/server";
 
 export const getEvents = query({
   handler: async (ctx) => {
@@ -39,6 +40,9 @@ export const createEvent = mutation({
     is_registration_open: v.boolean(),
   },
   handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    // Auth bypassed for custom token system
+    // if (userId === null) throw new Error("Unauthorized");
     const newEventId = await ctx.db.insert("events", {
       ...args,
       created_at: new Date().toISOString(),
@@ -63,6 +67,9 @@ export const updateEvent = mutation({
     is_registration_open: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    // Auth bypassed for custom token system
+    // if (userId === null) throw new Error("Unauthorized");
     const { id, ...updates } = args;
     
     // If activating this event, deactivate all others
@@ -86,6 +93,9 @@ export const updateEvent = mutation({
 export const deleteEvent = mutation({
   args: { id: v.id("events") },
   handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    // Auth bypassed for custom token system
+    // if (userId === null) throw new Error("Unauthorized");
     await ctx.db.delete(args.id);
   },
 });

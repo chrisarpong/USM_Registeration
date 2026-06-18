@@ -79,7 +79,7 @@ export default function Registration() {
 
         setLoading(true)
         try {
-            const logId = await registerAttendee({
+            const { logId, qrUuid } = await registerAttendee({
                 event_id: (event as any)._id,
                 full_name: fullName,
                 email,
@@ -98,7 +98,8 @@ export default function Registration() {
                     email,
                     name: fullName,
                     eventId: (event as any)._id,
-                    logId: logId as any
+                    logId: logId as any,
+                    qrUuid: qrUuid
                 }).catch(e => console.error("Email failed to send", e))
             }
 

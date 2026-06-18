@@ -8,15 +8,16 @@ import { toast } from 'react-hot-toast'
 import logo from '../assets/logo.png'
 import bgImage from '../assets/14.JPEG'
 
-export default function AdminLogin() {
+export default function AdminSignUp() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [confirmPassword, setConfirmPassword] = useState('')
     const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
 
-    const loginMutation = useMutation(api.adminAuth.login)
+    const signUpMutation = useMutation(api.adminAuth.signUp)
 
-    const handleLogin = async (e: React.FormEvent) => {
+    const handleSignUp = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
 
@@ -26,20 +27,26 @@ export default function AdminLogin() {
             return;
         }
 
+        if (password !== confirmPassword) {
+            toast.error('Passwords do not match');
+            setLoading(false);
+            return;
+        }
+
         try {
-            const result = await loginMutation({ email, password });
+            const result = await signUpMutation({ email, password });
             if (result.success) {
                 localStorage.setItem('usm_admin_token', result.token!);
                 localStorage.setItem('usm_admin_role', result.role!);
                 localStorage.setItem('usm_admin_name', result.name!);
-                toast.success('Welcome back!');
+                toast.success('Account created successfully!');
                 navigate('/admin');
             } else {
-                toast.error(result.error || 'Invalid credentials');
+                toast.error(result.error || 'Account already exists. Please login instead.');
             }
         } catch (error: any) {
-            console.error("SignIn Error:", error);
-            toast.error('Server Error: Could not connect to authentication service.');
+            console.error("SignUp Error:", error);
+            toast.error('Failed to create account.');
         } finally {
             setLoading(false)
         }
@@ -58,7 +65,7 @@ export default function AdminLogin() {
             {/* Global Background Image */}
             <div style={{
                 position: 'absolute',
-                inset: -20, // slightly larger to hide blur edges
+                inset: -20,
                 backgroundImage: `url(${bgImage})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
@@ -93,7 +100,7 @@ export default function AdminLogin() {
                 }}
             >
                 <button 
-                    onClick={() => navigate('/')}
+                    onClick={() => navigate('/login')}
                     style={{
                         position: 'absolute',
                         top: '24px',
@@ -111,18 +118,18 @@ export default function AdminLogin() {
 
                 <div style={{ textAlign: 'center', marginBottom: '32px', marginTop: '20px' }}>
                     <img src={logo} alt="USM Logo" style={{ height: '48px', margin: '0 auto 16px', display: 'block' }} />
-                    <h1 style={{ fontSize: '24px', color: 'white', fontWeight: 700, marginBottom: '8px' }}>Admin Login</h1>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Enter your credentials to access the dashboard</p>
+                    <h1 style={{ fontSize: '24px', color: 'white', fontWeight: 700, marginBottom: '8px' }}>Create Admin</h1>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Sign up to manage USM events</p>
                 </div>
 
-                <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <form onSubmit={handleSignUp} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     <div className="form-group" style={{ marginBottom: 0 }}>
                         <label className="glass-label">Email</label>
                         <div className="glass-input-wrapper">
                             <Mail size={18} style={{ color: 'var(--text-muted)', marginRight: '12px' }} />
                             <input
                                 type="email"
-                                placeholder="admin@usm.com"
+                                placeholder="name@usm.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
@@ -146,21 +153,19 @@ export default function AdminLogin() {
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-8px' }}>
-                        <button
-                            type="button"
-                            onClick={() => navigate('/forgot-password')}
-                            style={{
-                                background: 'none',
-                                border: 'none',
-                                color: 'var(--text-secondary)',
-                                fontSize: '13px',
-                                cursor: 'pointer',
-                                padding: 0
-                            }}
-                        >
-                            Forgot Password?
-                        </button>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="glass-label">Confirm Password</label>
+                        <div className="glass-input-wrapper">
+                            <Lock size={18} style={{ color: 'var(--text-muted)', marginRight: '12px' }} />
+                            <input
+                                type="password"
+                                placeholder="••••••••"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                required
+                                className="glass-input"
+                            />
+                        </div>
                     </div>
 
                     <button
@@ -184,16 +189,16 @@ export default function AdminLogin() {
                             transition: 'all 0.2s'
                         }}
                     >
-                        {loading ? 'Logging in...' : (
-                            <>Login <ChevronRight size={18} /></>
+                        {loading ? 'Creating...' : (
+                            <>Sign Up <ChevronRight size={18} /></>
                         )}
                     </button>
 
                     <div style={{ textAlign: 'center', marginTop: '16px' }}>
-                        <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Don't have an account? </span>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Already have an account? </span>
                         <button
                             type="button"
-                            onClick={() => navigate('/signup')}
+                            onClick={() => navigate('/login')}
                             style={{
                                 background: 'none',
                                 border: 'none',
@@ -204,7 +209,7 @@ export default function AdminLogin() {
                                 padding: 0
                             }}
                         >
-                            Sign up
+                            Log in
                         </button>
                     </div>
                 </form>

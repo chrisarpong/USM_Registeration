@@ -5,6 +5,9 @@ import { paginationOptsValidator } from "convex/server";
 export const getLogsByEvent = query({
   args: { event_id: v.id("events") },
   handler: async (ctx, args) => {
+    // const userId = await getAuthUserId(ctx);
+    // Auth bypassed for custom token system
+    // if (userId === null) throw new Error("Unauthorized");
     return await ctx.db
       .query("attendanceLogs")
       .withIndex("by_event", (q) => q.eq("event_id", args.event_id))
@@ -15,6 +18,9 @@ export const getLogsByEvent = query({
 
 export const getAllLogs = query({
   handler: async (ctx) => {
+    // const userId = await getAuthUserId(ctx);
+    // Auth bypassed for custom token system
+    // if (userId === null) throw new Error("Unauthorized");
     return await ctx.db
       .query("attendanceLogs")
       .order("desc")
@@ -30,6 +36,9 @@ export const getPaginatedLogs = query({
     searchTerm: v.optional(v.string())
   },
   handler: async (ctx, args) => {
+    // const userId = await getAuthUserId(ctx);
+    // Auth bypassed for custom token system
+    // if (userId === null) throw new Error("Unauthorized");
     let results;
     if (args.event_id) {
       results = await ctx.db.query("attendanceLogs")
@@ -63,6 +72,9 @@ export const getPaginatedLogs = query({
 export const getLogStats = query({
   args: { event_id: v.optional(v.id("events")) },
   handler: async (ctx, args) => {
+    // const userId = await getAuthUserId(ctx);
+    // Auth bypassed for custom token system
+    // if (userId === null) throw new Error("Unauthorized");
     let all;
     if (args.event_id) {
       all = await ctx.db.query("attendanceLogs")
@@ -96,6 +108,9 @@ export const registerAttendee = mutation({
     is_admin_registration: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    // const userId = await getAuthUserId(ctx);
+    const isAdmin = true; // Temporary bypass
+
     // Check if already registered
     const existing = await ctx.db
       .query("attendanceLogs")
@@ -107,13 +122,17 @@ export const registerAttendee = mutation({
       throw new Error("This phone number is already registered for this event.");
     }
 
+    const qrUuid = crypto.randomUUID();
+
     const logId = await ctx.db.insert("attendanceLogs", {
       ...args,
+      qr_uuid: qrUuid,
+      is_admin_registration: isAdmin ? args.is_admin_registration : false,
       checked_in: false,
       created_at: new Date().toISOString(),
     });
 
-    return logId;
+    return { logId, qrUuid };
   },
 });
 
@@ -130,6 +149,9 @@ export const updateLog = mutation({
     location: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    // const userId = await getAuthUserId(ctx);
+    // Auth bypassed for custom token system
+    // if (userId === null) throw new Error("Unauthorized");
     const { id, ...updates } = args;
     await ctx.db.patch(id, updates);
   },
@@ -141,6 +163,9 @@ export const toggleCheckIn = mutation({
     status: v.boolean()
   },
   handler: async (ctx, args) => {
+    // const userId = await getAuthUserId(ctx);
+    // Auth bypassed for custom token system
+    // if (userId === null) throw new Error("Unauthorized");
     await ctx.db.patch(args.id, {
       checked_in: args.status,
       checked_in_at: args.status ? new Date().toISOString() : undefined,
@@ -151,6 +176,9 @@ export const toggleCheckIn = mutation({
 export const deleteLog = mutation({
   args: { id: v.id("attendanceLogs") },
   handler: async (ctx, args) => {
+    // const userId = await getAuthUserId(ctx);
+    // Auth bypassed for custom token system
+    // if (userId === null) throw new Error("Unauthorized");
     await ctx.db.delete(args.id);
   },
 });

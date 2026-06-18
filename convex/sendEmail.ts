@@ -7,7 +7,8 @@ export const sendWelcomeEmail = action({
       email: v.string(), 
       name: v.string(), 
       eventId: v.id("events"), 
-      logId: v.id("attendanceLogs") 
+      logId: v.id("attendanceLogs"),
+      qrUuid: v.string()
   },
   handler: async (_, args) => {
     // @ts-ignore
@@ -23,7 +24,7 @@ export const sendWelcomeEmail = action({
     const resend = new Resend(resendKey);
 
     // Generate a QR code URL for the ticket (using quickchart.io for speed)
-    const qrData = encodeURIComponent(args.logId);
+    const qrData = encodeURIComponent(args.qrUuid);
     const qrImageUrl = `https://quickchart.io/qr?text=${qrData}&size=300&margin=1`;
 
     const htmlContent = `
@@ -36,7 +37,7 @@ export const sendWelcomeEmail = action({
             <img src="${qrImageUrl}" alt="Your Ticket QR Code" style="border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" />
         </div>
         <p style="color: #777; text-align: center; font-size: 14px;">
-          Ticket ID: ${args.logId}
+          Ticket Code: ${args.qrUuid.split('-')[0].toUpperCase()}
         </p>
       </div>
     `;

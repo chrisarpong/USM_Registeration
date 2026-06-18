@@ -46,6 +46,7 @@ export default defineSchema({
     location: v.optional(v.string()),
     is_admin_registration: v.optional(v.boolean()),
     qr_code: v.optional(v.string()),
+    qr_uuid: v.optional(v.string()),
     checked_in: v.boolean(),
     checked_in_at: v.optional(v.string()),
     created_at: v.optional(v.string()),

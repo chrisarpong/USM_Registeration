@@ -7,7 +7,7 @@ import {
     ChevronRight, CheckCircle, Mail
 } from 'lucide-react'
 
-import { useQuery, useMutation } from "convex/react"
+import { useMutation, useQuery, useAction } from "convex/react"
 import { api } from "../../convex/_generated/api"
 import type { Id } from "../../convex/_generated/dataModel"
 
@@ -33,6 +33,7 @@ export default function AdminRegister() {
     const [success, setSuccess] = useState(false)
 
     const registerAttendee = useMutation(api.attendanceLogs.registerAttendee)
+    const sendWelcomeEmail = useAction(api.sendEmail.sendWelcomeEmail)
 
     // Conditional visibility
     const showBranch = status === 'Member'
@@ -82,7 +83,7 @@ export default function AdminRegister() {
         setLoading(true)
 
         try {
-            await registerAttendee({
+            const { logId, qrUuid } = await registerAttendee({
                 full_name: fullName.trim(),
                 phone_number: phone.trim(),
                 email: email.trim() || undefined,
@@ -97,18 +98,12 @@ export default function AdminRegister() {
 
             // Trigger Email Notification if email is provided
             if (email.trim()) {
-                fetch('/api/send-email', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name: fullName.trim(),
-                        email: email.trim(),
-                        eventDate: event ? formatEventDate(event.date) : undefined,
-                        eventTime: event?.time,
-                        eventTheme: event?.theme,
-                        eventVenue: event?.venue,
-                        flyerUrl: event?.flyer_url,
-                    })
+                sendWelcomeEmail({
+                    email: email.trim(),
+                    name: fullName.trim(),
+                    eventId: event.id as Id<"events">,
+                    logId: logId,
+                    qrUuid: qrUuid
                 }).catch(err => console.error('Failed to send email:', err))
             }
 
