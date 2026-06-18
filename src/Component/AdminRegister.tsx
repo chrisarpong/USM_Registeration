@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'react-hot-toast'
-import { useActiveEvent, formatEventDate } from '../hooks/useEvents'
+import { useActiveEvent } from '../hooks/useEvents'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
     Phone, User, Building2, MapPin, UserPlus,

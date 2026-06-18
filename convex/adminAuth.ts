@@ -6,7 +6,8 @@ export const login = mutation({
   handler: async (ctx, args) => {
     // Use an environment variable for the admin password, falling back to the hardcoded one 
     // ONLY as a temporary measure until the env var is set in the Convex dashboard.
-    const adminPassword = (process.env as any).ADMIN_PASSWORD || '12345admin';
+    // @ts-ignore
+    const adminPassword = process.env.ADMIN_PASSWORD || '12345admin';
     if (args.email.toLowerCase() === 'admin@usm.com' && args.password === adminPassword) {
       return { success: true, role: 'superadmin', name: 'Admin', token: 'superadmin_token_xyz' };
     }

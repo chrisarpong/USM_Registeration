@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'react-hot-toast'
 import { useActiveEvent, formatEventDate } from '../hooks/useEvents'
+import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
     Calendar, MapPin, Clock, Users, Phone, User,
@@ -18,6 +19,7 @@ import { api } from "../../convex/_generated/api"
 type Status = 'Member' | 'Guest' | 'First Timer'
 
 export default function Registration() {
+    const navigate = useNavigate()
     const { event, loading: eventLoading, error: eventError } = useActiveEvent()
 
     // Form state
@@ -105,13 +107,14 @@ export default function Registration() {
 
             toast.success('Registration successful!')
             
-            setFullName('')
-            setEmail('')
-            setPhone('')
-            setLocation('')
-            setInvitee('')
-            setHeardFrom('')
-            setStatus('Member')
+            navigate('/success', {
+                state: {
+                    name: fullName,
+                    registrationId: qrUuid,
+                    status: status,
+                    event: event
+                }
+            })
 
         } catch (error: unknown) {
             console.error("Registration error:", error)
