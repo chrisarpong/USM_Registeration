@@ -1,8 +1,12 @@
 {
-    "rewrites": [
-        {
-            "source": "/(.*)",
-            "destination": "/index.html"
-        }
-    ]
+  "rewrites": [
+    {
+      "source": "/current-flyer.jpg",
+      "destination": "https://festive-mosquito-982.convex.cloud/api/storage/30911f06-e5e5-4812-a9af-46f93ce56311"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
