@@ -6,6 +6,7 @@ import { Mail, ChevronRight, ArrowLeft, KeyRound } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import logo from '../assets/logo.png'
 import bgImage from '../assets/13.JPEG'
+import { useAuditLogger } from '../utils/auditLogger'
 
 export default function AdminLogin() {
     const [step, setStep] = useState<'email' | 'otp'>('email')
@@ -13,6 +14,7 @@ export default function AdminLogin() {
     const [code, setCode] = useState('')
     const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
+    const { log } = useAuditLogger()
 
     const { signIn } = useAuthActions()
 
@@ -39,6 +41,7 @@ export default function AdminLogin() {
         try {
             await signIn("resend-otp", { email, code })
             toast.success('Welcome back!')
+            log('LOGIN', `Admin logged in via email: ${email}`)
             navigate('/admin')
         } catch (error: any) {
             console.error("SignIn Error:", error)

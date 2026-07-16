@@ -44,4 +44,13 @@ export default defineSchema({
     checked_in_at: v.optional(v.string()),
     created_at: v.optional(v.string()),
   }).index("by_event", ["event_id"]),
+
+  auditLogs: defineTable({
+    adminId: v.optional(v.string()), // Optional in case of unknown
+    adminName: v.string(),
+    action: v.string(),
+    details: v.string(),
+    ipAddress: v.string(),
+    created_at: v.optional(v.string()),
+  }),
 });

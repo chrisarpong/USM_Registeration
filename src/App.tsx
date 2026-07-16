@@ -10,6 +10,7 @@ import AdminRegister from './Component/AdminRegister'
 import AdminReports from './Component/AdminReports'
 import EventManagement from './Component/EventManagement'
 import ScannerMode from './Component/ScannerMode'
+import AdminLogs from './Component/AdminLogs'
 
 // Protected Route Component
 const ProtectedRoute = () => {
@@ -41,6 +42,7 @@ function App() {
               <Route path="register" element={<AdminRegister />} />
               <Route path="reports" element={<AdminReports />} />
               <Route path="events" element={<EventManagement />} />
+              <Route path="logs" element={<AdminLogs />} />
             </Route>
           </Route>
 

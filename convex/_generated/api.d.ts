@@ -9,6 +9,7 @@
  */
 
 import type * as attendanceLogs from "../attendanceLogs.js";
+import type * as auditLogs from "../auditLogs.js";
 import type * as auth from "../auth.js";
 import type * as branches from "../branches.js";
 import type * as clearAll from "../clearAll.js";
@@ -29,6 +30,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   attendanceLogs: typeof attendanceLogs;
+  auditLogs: typeof auditLogs;
   auth: typeof auth;
   branches: typeof branches;
   clearAll: typeof clearAll;

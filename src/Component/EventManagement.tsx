@@ -5,6 +5,7 @@ import { formatEventDate } from '../hooks/useEvents'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'react-hot-toast'
 import type { Id } from "../../convex/_generated/dataModel"
+import { useAuditLogger } from '../utils/auditLogger'
 
 import {
     CalendarDays, Plus, Power, PowerOff, Trash2, Edit2, X, Save, MapPin,
@@ -56,6 +57,8 @@ export default function EventManagement() {
     const createEvent = useMutation(api.events.createEvent)
     const updateEvent = useMutation(api.events.updateEvent)
     const deleteEvent = useMutation(api.events.deleteEvent)
+
+    const { log } = useAuditLogger()
 
     const handleFlyerUpload = async (file: File) => {
         if (!file.type.startsWith('image/')) {
@@ -176,6 +179,7 @@ export default function EventManagement() {
                     flyer_url: formData.flyer_url || undefined,
                     is_registration_open: formData.is_registration_open,
                 })
+                log('UPDATE_EVENT', `Updated event: ${formData.title} (${formData.theme})`)
                 toast.success('Event updated successfully')
             } else {
                 await createEvent({
@@ -191,6 +195,7 @@ export default function EventManagement() {
                     is_active: false,
                     is_registration_open: formData.is_registration_open,
                 })
+                log('CREATE_EVENT', `Created new event: ${formData.title} (${formData.theme})`)
                 toast.success('Event created! Activate it when ready.')
             }
             setIsModalOpen(false)
@@ -207,6 +212,7 @@ export default function EventManagement() {
                 id: eventId as Id<"events">,
                 is_active: true
             })
+            log('ACTIVATE_EVENT', `Activated event ID: ${eventId}`)
             toast.success('Event activated! Public registration now shows this event.')
         } catch (error: any) {
             toast.error('Failed to activate event: ' + error.message)
@@ -219,6 +225,7 @@ export default function EventManagement() {
                 id: eventId as Id<"events">,
                 is_active: false
             })
+            log('DEACTIVATE_EVENT', `Deactivated event ID: ${eventId}`)
             toast.success('Event deactivated')
         } catch (error: any) {
             toast.error('Failed to deactivate event: ' + error.message)
@@ -231,6 +238,7 @@ export default function EventManagement() {
                 id: eventId as Id<"events">,
                 is_registration_open: !currentState
             })
+            log('TOGGLE_REGISTRATION', `${!currentState ? 'Opened' : 'Closed'} registration for event ID: ${eventId}`)
             toast.success(!currentState ? 'Registration opened' : 'Registration closed')
         } catch (error: any) {
             toast.error('Failed to toggle registration: ' + error.message)
@@ -241,6 +249,7 @@ export default function EventManagement() {
         setConfirmDeleteId(null)
         try {
             await deleteEvent({ id: eventId as Id<"events"> })
+            log('DELETE_EVENT', `Deleted event ID: ${eventId}`)
             toast.success('Event deleted')
         } catch (error: any) {
             toast.error('Failed to delete event. It may have registrations linked to it.')

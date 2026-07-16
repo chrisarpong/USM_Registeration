@@ -52,12 +52,12 @@ export default function AdminReports() {
 
         if (startDate) {
             const start = new Date(startDate).getTime()
-            filtered = filtered.filter(l => new Date(l.created_at || new Date()).getTime() >= start)
+            filtered = filtered.filter(l => new Date(l.created_at || l._creationTime).getTime() >= start)
         }
         
         if (endDate) {
             const end = new Date(endDate + 'T23:59:59').getTime()
-            filtered = filtered.filter(l => new Date(l.created_at || new Date()).getTime() <= end)
+            filtered = filtered.filter(l => new Date(l.created_at || l._creationTime).getTime() <= end)
         }
 
         if (statusFilter !== 'All') {
@@ -68,7 +68,7 @@ export default function AdminReports() {
 
         if (timeOfDayFilter !== 'All') {
             filtered = filtered.filter(l => {
-                const hour = new Date(l.created_at || new Date()).getHours()
+                const hour = new Date(l.created_at || l._creationTime).getHours()
                 if (timeOfDayFilter === 'Morning') return hour < 12
                 if (timeOfDayFilter === 'Afternoon') return hour >= 12 && hour < 17
                 if (timeOfDayFilter === 'Evening') return hour >= 17
@@ -120,7 +120,7 @@ export default function AdminReports() {
 
         const dataRows = reportData.map(row => {
             return [
-                new Date(row.created_at || new Date()).toLocaleString(),
+                new Date(row.created_at || row._creationTime).toLocaleString(),
                 `"${row.full_name}"`,
                 `"${row.phone_number}"`,
                 row.status,
@@ -147,7 +147,7 @@ export default function AdminReports() {
     }
 
     const analytics = useMemo(() => {
-        if (!reportData.length) return null;
+        if (!reportData) return null;
         let members = 0, guests = 0, firstTimers = 0, checkedIn = 0;
         const timeBlocks: Record<string, number> = {};
 
@@ -157,7 +157,7 @@ export default function AdminReports() {
             if (row.status === 'First Timer') firstTimers++;
             if (row.checked_in) checkedIn++;
 
-            const hour = new Date(row.created_at).getHours();
+            const hour = new Date(row.created_at || row._creationTime).getHours();
             const block = `${hour}:00 - ${hour+1}:00`;
             timeBlocks[block] = (timeBlocks[block] || 0) + 1;
         });
@@ -177,7 +177,7 @@ export default function AdminReports() {
             guests,
             firstTimers,
             checkedIn,
-            checkInRate: Math.round((checkedIn / reportData.length) * 100),
+            checkInRate: reportData.length ? Math.round((checkedIn / reportData.length) * 100) : 0,
             peakTime
         }
     }, [reportData]);
@@ -377,7 +377,7 @@ export default function AdminReports() {
                                             <tbody>
                                                 {reportData.slice(0, 5).map(row => (
                                                     <tr key={row._id}>
-                                                        <td style={{ color: 'var(--text-secondary)' }}>{new Date(row.created_at).toLocaleDateString()}</td>
+                                                        <td style={{ color: 'var(--text-secondary)' }}>{new Date(row.created_at || row._creationTime).toLocaleDateString()}</td>
                                                         <td style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{row.full_name}</td>
                                                         <td>
                                                             <span className={`status-badge ${row.status.toLowerCase().replace(' ', '-')}`}>

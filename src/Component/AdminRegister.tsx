@@ -10,6 +10,7 @@ import {
 import { useMutation, useQuery, useAction } from "convex/react"
 import { api } from "../../convex/_generated/api"
 import type { Id } from "../../convex/_generated/dataModel"
+import { useAuditLogger } from '../utils/auditLogger'
 
 type Status = 'Member' | 'Guest' | 'First Timer'
 
@@ -34,6 +35,7 @@ export default function AdminRegister() {
 
     const registerAttendee = useMutation(api.attendanceLogs.registerAttendee)
     const sendWelcomeEmail = useAction(api.sendEmail.sendWelcomeEmail)
+    const { log } = useAuditLogger()
 
     // Conditional visibility
     const showBranch = status === 'Member'
@@ -98,17 +100,23 @@ export default function AdminRegister() {
 
             // Trigger Email Notification if email is provided
             if (email.trim()) {
-                sendWelcomeEmail({
-                    email: email.trim(),
-                    name: fullName.trim(),
-                    eventId: event.id as Id<"events">,
-                    logId: logId,
-                    qrUuid: qrUuid
-                }).catch(err => console.error('Failed to send email:', err))
+                try {
+                    await sendWelcomeEmail({
+                        email: email.trim(),
+                        name: fullName.trim(),
+                        eventId: event.id as Id<"events">,
+                        logId: logId,
+                        qrUuid: qrUuid
+                    })
+                } catch (e) {
+                    console.error("Failed to send welcome email via server action", e)
+                }
             }
 
-            toast.success('User registered successfully!')
+            log('MANUAL_REGISTRATION', `Registered ${status}: ${fullName.trim()} (${phone.trim()})`)
+
             setSuccess(true)
+            toast.success('Attendee Registered successfully')
             resetForm()
             setTimeout(() => setSuccess(false), 3000)
         } catch (error: any) {

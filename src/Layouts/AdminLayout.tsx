@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuthActions } from "@convex-dev/auth/react"
 import { LayoutDashboard, UserPlus, FileText, CalendarDays,
-    LogOut, Search, Bell, Menu, X
+    LogOut, Search, Bell, Menu, X, Activity
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useQuery, useMutation } from "convex/react"
@@ -44,6 +44,7 @@ export default function AdminLayout() {
         { path: '/admin/events', icon: CalendarDays, label: 'Events' },
         { path: '/admin/reports', icon: FileText, label: 'Reports' },
         { path: '/admin/register', icon: UserPlus, label: 'Register Member' },
+        { path: '/admin/logs', icon: Activity, label: 'Activity Logs' },
     ]
 
     const pageTitle = navItems.find(item => item.path === location.pathname)?.label || 'Admin Panel'
