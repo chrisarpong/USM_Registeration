@@ -26,13 +26,6 @@ export default defineSchema({
     created_at: v.optional(v.string()),
   }),
 
-  adminUsers: defineTable({
-    name: v.string(),
-    email: v.string(),
-    password: v.string(),
-    role: v.string(), // "superadmin", "scanner"
-    created_at: v.optional(v.string()),
-  }).index("by_email", ["email"]),
 
   attendanceLogs: defineTable({
     event_id: v.optional(v.id("events")),

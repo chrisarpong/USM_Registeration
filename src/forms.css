@@ -1,37 +1,37 @@
 /* ─── Elegant Premium Inputs ─── */
 .glass-input-wrapper {
-  background: rgba(15, 15, 20, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-base);
+  border: 1px solid var(--border);
   border-radius: 14px;
   display: flex;
   align-items: center;
   padding: 0 16px;
   height: 54px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-sm);
 }
 
 .glass-input-wrapper:hover {
-  background: rgba(25, 25, 30, 0.8);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: var(--bg-surface);
+  border-color: var(--border-focus);
 }
 
 .glass-input-wrapper:focus-within {
-  background: rgba(20, 20, 25, 0.9);
-  border-color: rgba(255, 255, 255, 0.5); 
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  background: var(--bg-surface);
+  border-color: var(--primary); 
+  box-shadow: 0 0 0 2px var(--primary-light);
 }
 
-/* Make the icon turn bright white when the wrapper is focused */
+/* Make the icon turn primary when the wrapper is focused */
 .glass-input-wrapper:focus-within svg {
-  color: #ffffff !important;
+  color: var(--primary) !important;
   transition: color 0.2s ease;
 }
 
 .glass-input {
   background: transparent !important;
   border: none !important;
-  color: #f8fafc !important;
+  color: var(--text-primary) !important;
   width: 100%;
   outline: none !important;
   box-shadow: none !important;
@@ -48,7 +48,7 @@ select.glass-input:focus {
 }
 
 .glass-input::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
   font-weight: 400;
 }
 
@@ -57,15 +57,15 @@ select.glass-input:focus {
 .glass-input:-webkit-autofill:hover, 
 .glass-input:-webkit-autofill:focus, 
 .glass-input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 50px #18181b inset !important;
-  -webkit-text-fill-color: #f8fafc !important;
+  -webkit-box-shadow: 0 0 0 50px var(--bg-base) inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
   transition: background-color 5000s ease-in-out 0s;
   border-radius: 14px;
 }
 
 .glass-label {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--text-secondary);
   margin-bottom: 8px;
   display: block;
   font-weight: 500;
@@ -78,15 +78,15 @@ select.glass-input {
 }
 
 select.glass-input option {
-  background-color: #18181b; 
-  color: white;
+  background-color: var(--bg-surface); 
+  color: var(--text-primary);
 }
 
 /* ─── Premium Submit Button ─── */
 .premium-submit-btn {
   margin-top: 16px;
   height: 52px;
-  background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+  background: var(--primary);
   color: white;
   border: none;
   border-radius: 14px;
@@ -98,13 +98,13 @@ select.glass-input option {
   gap: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 .premium-submit-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
-  background: linear-gradient(135deg, #4338ca 0%, #2563eb 100%);
+  box-shadow: var(--shadow-lg);
+  background: var(--primary-hover);
 }
 
 .premium-submit-btn:active:not(:disabled) {
@@ -112,8 +112,26 @@ select.glass-input option {
 }
 
 .premium-submit-btn:disabled {
-  background: #27272a;
-  color: #71717a;
+  background: var(--bg-subtle);
+  color: var(--text-muted);
   cursor: not-allowed;
   box-shadow: none;
+}
+
+/* ─── Mobile Adjustments ─── */
+@media (max-width: 850px) {
+  .glass-input-wrapper {
+    height: 48px;
+  }
+  .glass-input {
+    font-size: 14px;
+  }
+  .glass-label {
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+  .premium-submit-btn {
+    height: 48px;
+    font-size: 15px;
+  }
 }

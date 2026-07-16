@@ -8,12 +8,12 @@
  * @module
  */
 
-import type * as adminAuth from "../adminAuth.js";
 import type * as attendanceLogs from "../attendanceLogs.js";
 import type * as auth from "../auth.js";
 import type * as branches from "../branches.js";
 import type * as clearAll from "../clearAll.js";
 import type * as clearUsers from "../clearUsers.js";
+import type * as crons from "../crons.js";
 import type * as events from "../events.js";
 import type * as http from "../http.js";
 import type * as importData from "../importData.js";
@@ -28,12 +28,12 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
-  adminAuth: typeof adminAuth;
   attendanceLogs: typeof attendanceLogs;
   auth: typeof auth;
   branches: typeof branches;
   clearAll: typeof clearAll;
   clearUsers: typeof clearUsers;
+  crons: typeof crons;
   events: typeof events;
   http: typeof http;
   importData: typeof importData;

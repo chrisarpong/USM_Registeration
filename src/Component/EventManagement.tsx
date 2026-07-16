@@ -264,51 +264,37 @@ export default function EventManagement() {
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
                 <div>
-                    <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'white', fontFamily: 'Outfit, sans-serif', marginBottom: '4px' }}>
+                    <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'Outfit, sans-serif', marginBottom: '4px' }}>
                         Event Management
                     </h2>
-                    <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>
+                    <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600 }}>
                         {events === undefined ? 'Loading...' : `Total: ${events.length}`}
                     </span>
-                    <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '14px' }}>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
                         Create, edit, and activate USM events. Only one event can be active at a time.
                     </p>
                 </div>
-                <motion.button
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
+                <button
                     onClick={openCreateModal}
-                    style={{
-                        padding: '12px 24px',
-                        background: 'linear-gradient(135deg, var(--primary) 0%, #5b21b6 100%)',
-                        border: 'none',
-                        borderRadius: '12px',
-                        color: 'white',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        fontWeight: 600,
-                        fontSize: '14px',
-                        boxShadow: '0 8px 24px rgba(124, 93, 250, 0.3)'
-                    }}
+                    className="btn-submit"
+                    style={{ width: 'auto', padding: '10px 20px', marginTop: 0 }}
                 >
                     <Plus size={18} /> New Event
-                </motion.button>
+                </button>
             </div>
 
             {/* Events Grid */}
             {events === undefined ? (
-                <div style={{ textAlign: 'center', padding: '60px', color: 'rgba(255,255,255,0.5)' }}>Loading events...</div>
+                <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>Loading events...</div>
             ) : events.length === 0 ? (
                 <div style={{
                     textAlign: 'center', padding: '80px 40px',
-                    background: 'rgba(255,255,255,0.03)', borderRadius: '16px',
-                    border: '1px dashed rgba(255,255,255,0.1)'
+                    background: 'var(--bg-subtle)', borderRadius: '16px',
+                    border: '1px dashed var(--border)'
                 }}>
-                    <CalendarDays size={48} color="rgba(255,255,255,0.2)" style={{ marginBottom: '16px' }} />
-                    <h3 style={{ color: 'rgba(255,255,255,0.5)', marginBottom: '8px' }}>No events yet</h3>
-                    <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '14px' }}>Create your first USM event to get started.</p>
+                    <CalendarDays size={48} color="var(--text-muted)" style={{ marginBottom: '16px' }} />
+                    <h3 style={{ color: 'var(--text-secondary)', marginBottom: '8px' }}>No events yet</h3>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Create your first USM event to get started.</p>
                 </div>
             ) : (
                 <div style={{ display: 'grid', gap: '20px' }}>
@@ -321,32 +307,30 @@ export default function EventManagement() {
                                 animate={{ opacity: 1, y: 0 }}
                                 className="event-card"
                                 style={{
-                                    background: status === 'active'
-                                        ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.02))'
-                                        : 'rgba(20, 20, 35, 0.3)',
+                                    background: 'var(--bg-surface)',
                                     border: status === 'active'
-                                        ? '1px solid rgba(16, 185, 129, 0.3)'
-                                        : '1px solid rgba(255,255,255,0.08)',
-                                    borderRadius: '16px',
+                                        ? '1px solid var(--success-border)'
+                                        : '1px solid var(--border)',
+                                    borderRadius: 'var(--radius-lg)',
                                     padding: '24px',
-                                    backdropFilter: 'blur(12px)',
-                                    transition: 'all 0.3s ease'
+                                    boxShadow: 'var(--shadow-sm)',
+                                    transition: 'all 0.2s ease'
                                 }}
                             >
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '20px', flexWrap: 'wrap' }}>
                                     {/* Event Info */}
-                                    <div style={{ flex: 1, minWidth: '280px' }}>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
-                                            <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'white', margin: 0, fontFamily: 'Outfit, sans-serif' }}>
+                                            <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', margin: 0, fontFamily: 'Outfit, sans-serif' }}>
                                                 {formatEventDate(event.date)}
                                             </h3>
 
                                             {/* Status badge */}
                                             {status === 'active' && (
                                                 <span style={{
-                                                    padding: '4px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 700,
-                                                    background: 'rgba(16, 185, 129, 0.2)', color: '#34d399',
-                                                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                                                    padding: '4px 12px', borderRadius: 'var(--radius-xl)', fontSize: '11px', fontWeight: 700,
+                                                    background: 'var(--success-bg)', color: 'var(--success)',
+                                                    border: '1px solid var(--success-border)',
                                                     textTransform: 'uppercase', letterSpacing: '0.5px'
                                                 }}>
                                                     ● ACTIVE
@@ -354,9 +338,9 @@ export default function EventManagement() {
                                             )}
                                             {status === 'past' && (
                                                 <span style={{
-                                                    padding: '4px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 600,
-                                                    background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)',
-                                                    border: '1px solid rgba(255,255,255,0.08)',
+                                                    padding: '4px 12px', borderRadius: 'var(--radius-xl)', fontSize: '11px', fontWeight: 600,
+                                                    background: 'var(--bg-subtle)', color: 'var(--text-secondary)',
+                                                    border: '1px solid var(--border)',
                                                     textTransform: 'uppercase', letterSpacing: '0.5px'
                                                 }}>
                                                     PAST
@@ -364,9 +348,9 @@ export default function EventManagement() {
                                             )}
                                             {status === 'upcoming' && (
                                                 <span style={{
-                                                    padding: '4px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 600,
-                                                    background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa',
-                                                    border: '1px solid rgba(59, 130, 246, 0.2)',
+                                                    padding: '4px 12px', borderRadius: 'var(--radius-xl)', fontSize: '11px', fontWeight: 600,
+                                                    background: 'var(--primary-bg)', color: 'var(--primary)',
+                                                    border: '1px solid var(--primary-border)',
                                                     textTransform: 'uppercase', letterSpacing: '0.5px'
                                                 }}>
                                                     UPCOMING
@@ -375,17 +359,17 @@ export default function EventManagement() {
 
                                             {/* Registration status */}
                                             <span style={{
-                                                padding: '4px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 600,
-                                                background: event.is_registration_open ? 'rgba(168, 85, 247, 0.15)' : 'rgba(239, 68, 68, 0.1)',
-                                                color: event.is_registration_open ? '#a855f7' : '#f87171',
-                                                border: `1px solid ${event.is_registration_open ? 'rgba(168, 85, 247, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
+                                                padding: '4px 12px', borderRadius: 'var(--radius-xl)', fontSize: '11px', fontWeight: 600,
+                                                background: event.is_registration_open ? 'var(--primary-bg)' : 'var(--danger-bg)',
+                                                color: event.is_registration_open ? 'var(--primary)' : 'var(--danger)',
+                                                border: `1px solid ${event.is_registration_open ? 'var(--primary-border)' : 'var(--danger-border)'}`,
                                                 textTransform: 'uppercase', letterSpacing: '0.5px'
                                             }}>
                                                 {event.is_registration_open ? 'REG OPEN' : 'REG CLOSED'}
                                             </span>
                                         </div>
 
-                                        <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>
+                                        <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', color: 'var(--text-secondary)', fontSize: '13px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                 <Sparkles size={14} color="#a855f7" />
                                                 <span>{event.theme}</span>
@@ -411,9 +395,9 @@ export default function EventManagement() {
                                                 onClick={() => handleDeactivate(event._id)}
                                                 title="Deactivate"
                                                 style={{
-                                                    padding: '8px 16px', borderRadius: '10px', cursor: 'pointer',
-                                                    background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)',
-                                                    color: '#f87171', display: 'flex', alignItems: 'center', gap: '6px',
+                                                    padding: '8px 16px', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+                                                    background: 'var(--danger-bg)', border: '1px solid var(--danger-border)',
+                                                    color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '6px',
                                                     fontSize: '12px', fontWeight: 600
                                                 }}
                                             >
@@ -424,9 +408,9 @@ export default function EventManagement() {
                                                 onClick={() => handleActivate(event._id)}
                                                 title="Set as Active Event"
                                                 style={{
-                                                    padding: '8px 16px', borderRadius: '10px', cursor: 'pointer',
-                                                    background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)',
-                                                    color: '#34d399', display: 'flex', alignItems: 'center', gap: '6px',
+                                                    padding: '8px 16px', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+                                                    background: 'var(--success-bg)', border: '1px solid var(--success-border)',
+                                                    color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '6px',
                                                     fontSize: '12px', fontWeight: 600
                                                 }}
                                             >
@@ -439,9 +423,9 @@ export default function EventManagement() {
                                             onClick={() => handleToggleRegistration(event._id, event.is_registration_open)}
                                             title={event.is_registration_open ? 'Close Registration' : 'Open Registration'}
                                             style={{
-                                                padding: '8px 16px', borderRadius: '10px', cursor: 'pointer',
-                                                background: 'rgba(168, 85, 247, 0.1)', border: '1px solid rgba(168, 85, 247, 0.2)',
-                                                color: '#a855f7', display: 'flex', alignItems: 'center', gap: '6px',
+                                                padding: '8px 16px', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+                                                background: 'var(--primary-bg)', border: '1px solid var(--primary-border)',
+                                                color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '6px',
                                                 fontSize: '12px', fontWeight: 600
                                             }}
                                         >
@@ -449,24 +433,20 @@ export default function EventManagement() {
                                             {event.is_registration_open ? 'Close Reg' : 'Open Reg'}
                                         </button>
 
-                                        {/* Edit */}
                                         <button
                                             onClick={() => openEditModal(event)}
                                             className="btn-icon"
                                             title="Edit"
-                                            style={{ padding: '8px', background: 'rgba(96, 165, 250, 0.1)', border: '1px solid rgba(96, 165, 250, 0.2)' }}
                                         >
-                                            <Edit2 size={16} color="#60a5fa" />
+                                            <Edit2 size={16} />
                                         </button>
 
-                                        {/* Duplicate */}
                                         <button
                                             onClick={() => handleDuplicate(event)}
                                             className="btn-icon"
                                             title="Duplicate Event"
-                                            style={{ padding: '8px', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.2)' }}
                                         >
-                                            <Copy size={16} color="#fbbf24" />
+                                            <Copy size={16} />
                                         </button>
 
                                         {/* Delete */}
@@ -474,13 +454,13 @@ export default function EventManagement() {
                                             <div style={{ display: 'flex', gap: '6px' }}>
                                                 <button
                                                     onClick={() => handleDelete(event._id)}
-                                                    style={{ padding: '6px 12px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}
+                                                    style={{ padding: '6px 12px', background: 'var(--danger)', color: 'white', border: 'none', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}
                                                 >
                                                     Confirm
                                                 </button>
                                                 <button
                                                     onClick={() => setConfirmDeleteId(null)}
-                                                    style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}
+                                                    style={{ padding: '6px 12px', background: 'var(--bg-subtle)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}
                                                 >
                                                     Cancel
                                                 </button>
@@ -490,9 +470,8 @@ export default function EventManagement() {
                                                 onClick={() => setConfirmDeleteId(event._id)}
                                                 className="btn-icon"
                                                 title="Delete"
-                                                style={{ padding: '8px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)' }}
                                             >
-                                                <Trash2 size={16} color="#ef4444" />
+                                                <Trash2 size={16} />
                                             </button>
                                         )}
                                     </div>
@@ -513,25 +492,26 @@ export default function EventManagement() {
                         padding: '20px'
                     }}>
                         <motion.div
+                            className="admin-modal"
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
                             style={{
                                 width: '100%', maxWidth: '600px',
-                                background: 'rgba(30, 30, 45, 0.98)',
-                                border: '1px solid rgba(255,255,255,0.1)',
-                                borderRadius: '20px', padding: '32px',
+                                background: 'var(--bg-surface)',
+                                border: '1px solid var(--border)',
+                                borderRadius: 'var(--radius-lg)', padding: '32px',
                                 maxHeight: '85vh', overflowY: 'auto',
-                                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                                boxShadow: 'var(--shadow-lg)'
                             }}
                         >
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                                <h2 style={{ fontSize: '22px', fontWeight: 700, color: 'white', fontFamily: 'Outfit, sans-serif', margin: 0 }}>
+                                <h2 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'Outfit, sans-serif', margin: 0 }}>
                                     {editingEvent ? 'Edit Event' : 'Create New Event'}
                                 </h2>
                                 <button
                                     onClick={() => setIsModalOpen(false)}
-                                    style={{ background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: '50%', padding: '8px', color: 'white', cursor: 'pointer' }}
+                                    style={{ background: 'var(--bg-subtle)', border: 'none', borderRadius: '50%', padding: '8px', color: 'var(--text-primary)', cursor: 'pointer' }}
                                 >
                                     <X size={20} />
                                 </button>
@@ -550,7 +530,7 @@ export default function EventManagement() {
                                 </div>
 
                                 {/* Date & Time */}
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                <div className="form-grid-2">
                                     <div className="form-group" style={{ marginBottom: 0 }}>
                                         <label><CalendarDays size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px' }} />Date</label>
                                         <input
@@ -594,7 +574,7 @@ export default function EventManagement() {
                                 </div>
 
                                 {/* Venue Address (Short) & Map Query */}
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                <div className="form-grid-2">
                                     <div className="form-group" style={{ marginBottom: 0 }}>
                                         <label>Short Address</label>
                                         <input
@@ -638,7 +618,7 @@ export default function EventManagement() {
                                                 alt="Current flyer"
                                                 style={{
                                                     width: '100%', height: '160px', objectFit: 'cover',
-                                                    borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)',
+                                                    borderRadius: '12px', border: '1px solid var(--border)',
                                                     display: 'block'
                                                 }}
                                                 onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
@@ -667,12 +647,12 @@ export default function EventManagement() {
                                             onDragLeave={handleDragLeave}
                                             onClick={() => !uploading && fileInputRef.current?.click()}
                                             style={{
-                                                border: `2px dashed ${dragActive ? 'var(--primary)' : 'rgba(255,255,255,0.15)'}`,
+                                                border: `2px dashed ${dragActive ? 'var(--primary)' : 'var(--border)'}`,
                                                 borderRadius: '12px',
                                                 padding: '32px 20px',
                                                 textAlign: 'center',
                                                 cursor: uploading ? 'wait' : 'pointer',
-                                                background: dragActive ? 'rgba(124, 93, 250, 0.08)' : 'rgba(255,255,255,0.02)',
+                                                background: dragActive ? 'var(--primary-bg)' : 'var(--bg-subtle)',
                                                 transition: 'all 0.3s ease',
                                             }}
                                         >
@@ -695,11 +675,11 @@ export default function EventManagement() {
                                                 </div>
                                             ) : (
                                                 <div>
-                                                    <Upload size={32} color="rgba(255,255,255,0.3)" style={{ marginBottom: '12px' }} />
-                                                    <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px', fontWeight: 500, margin: '0 0 4px 0' }}>
+                                                    <Upload size={32} color="var(--text-muted)" style={{ marginBottom: '12px' }} />
+                                                    <p style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: 500, margin: '0 0 4px 0' }}>
                                                         Click to browse or drag & drop
                                                     </p>
-                                                    <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '12px', margin: 0 }}>
+                                                    <p style={{ color: 'var(--text-muted)', fontSize: '12px', margin: 0 }}>
                                                         JPG, PNG up to 5MB
                                                     </p>
                                                 </div>
@@ -714,7 +694,7 @@ export default function EventManagement() {
                                             onClick={() => setShowUrlInput(!showUrlInput)}
                                             style={{
                                                 background: 'none', border: 'none', cursor: 'pointer',
-                                                color: 'rgba(255,255,255,0.35)', fontSize: '12px',
+                                                color: 'var(--text-muted)', fontSize: '12px',
                                                 display: 'flex', alignItems: 'center', gap: '4px',
                                                 padding: '4px 0'
                                             }}
@@ -738,20 +718,20 @@ export default function EventManagement() {
                                 {/* Registration Toggle */}
                                 <div style={{
                                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                    padding: '16px', background: 'rgba(255,255,255,0.03)',
-                                    borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)'
+                                    padding: '16px', background: 'var(--bg-subtle)',
+                                    borderRadius: '12px', border: '1px solid var(--border)'
                                 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        <Users size={18} color="rgba(255,255,255,0.6)" />
-                                        <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '14px', fontWeight: 500 }}>Registration Open</span>
+                                        <Users size={18} color="var(--text-secondary)" />
+                                        <span style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 500 }}>Registration Open</span>
                                     </div>
                                     <button
                                         onClick={() => setFormData({ ...formData, is_registration_open: !formData.is_registration_open })}
                                         style={{
-                                            background: formData.is_registration_open ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.05)',
-                                            border: `1px solid ${formData.is_registration_open ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255,255,255,0.1)'}`,
-                                            color: formData.is_registration_open ? '#34d399' : 'rgba(255,255,255,0.4)',
-                                            padding: '6px 16px', borderRadius: '20px', cursor: 'pointer',
+                                            background: formData.is_registration_open ? 'var(--success-bg)' : 'var(--bg-subtle)',
+                                            border: `1px solid ${formData.is_registration_open ? 'var(--success-border)' : 'var(--border)'}`,
+                                            color: formData.is_registration_open ? 'var(--success)' : 'var(--text-secondary)',
+                                            padding: '6px 16px', borderRadius: 'var(--radius-xl)', cursor: 'pointer',
                                             fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px'
                                         }}
                                     >
@@ -766,8 +746,8 @@ export default function EventManagement() {
                                     onClick={() => setIsModalOpen(false)}
                                     style={{
                                         padding: '12px 24px', background: 'transparent',
-                                        border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px',
-                                        color: 'white', cursor: 'pointer', fontWeight: 600
+                                        border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)',
+                                        color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 600
                                     }}
                                 >
                                     Cancel
@@ -775,12 +755,8 @@ export default function EventManagement() {
                                 <button
                                     onClick={handleSave}
                                     disabled={saving || uploading}
-                                    style={{
-                                        padding: '12px 24px', background: 'linear-gradient(135deg, var(--primary) 0%, #5b21b6 100%)',
-                                        border: 'none', borderRadius: '12px', color: 'white', cursor: 'pointer',
-                                        display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600,
-                                        boxShadow: '0 4px 15px rgba(124, 93, 250, 0.3)'
-                                    }}
+                                    className="btn-submit"
+                                    style={{ width: 'auto' }}
                                 >
                                     {saving ? <Loader2 size={18} className="spin" /> : <Save size={18} />}
                                     {saving ? 'Saving...' : 'Save Event'}

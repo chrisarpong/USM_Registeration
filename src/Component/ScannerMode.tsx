@@ -70,8 +70,8 @@ export default function ScannerMode() {
     return (
         <div style={{
             minHeight: '100vh',
-            background: '#000',
-            color: 'white',
+            background: 'var(--bg-base)',
+            color: 'var(--text-primary)',
             display: 'flex',
             flexDirection: 'column'
         }}>
@@ -81,8 +81,8 @@ export default function ScannerMode() {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                background: 'rgba(255,255,255,0.05)',
-                borderBottom: '1px solid rgba(255,255,255,0.1)'
+                background: 'var(--bg-subtle)',
+                borderBottom: '1px solid var(--border)'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <div style={{ background: '#a855f7', padding: '8px', borderRadius: '10px' }}>
@@ -90,7 +90,7 @@ export default function ScannerMode() {
                     </div>
                     <div>
                         <h1 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>Scanner Mode</h1>
-                        <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>Usher View</p>
+                        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0 }}>Usher View</p>
                     </div>
                 </div>
                 
@@ -119,7 +119,7 @@ export default function ScannerMode() {
                     <div id="reader" style={{ 
                         borderRadius: '24px', 
                         overflow: 'hidden', 
-                        border: '2px solid rgba(255,255,255,0.1)',
+                        border: '2px solid var(--border)',
                         background: 'black',
                         boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
                     }}></div>
@@ -146,7 +146,7 @@ export default function ScannerMode() {
                                 </div>
                             </div>
                         ) : (
-                            <p style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', fontStyle: 'italic' }}>
+                            <p style={{ color: 'var(--text-secondary)', textAlign: 'center', fontStyle: 'italic' }}>
                                 Point camera at QR code to instantly check in attendee.
                             </p>
                         )}

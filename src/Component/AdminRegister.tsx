@@ -125,7 +125,7 @@ export default function AdminRegister() {
             style={{ maxWidth: '600px', margin: '0 auto' }}
         >
             <div className="registration-container" style={{ display: 'block', minHeight: 'auto', padding: '0', overflow: 'visible' }}>
-                <div className="form-panel" style={{ border: 'none', background: 'transparent', padding: '40px' }}>
+                <div className="form-panel" style={{ border: 'none', background: 'transparent' }}>
 
                     <div style={{ marginBottom: '32px' }}>
                         <h2 style={{ fontSize: '24px', marginBottom: '8px' }}>Manual Registration</h2>
@@ -140,9 +140,9 @@ export default function AdminRegister() {
                                 animate={{ opacity: 1, height: 'auto', marginBottom: 24 }}
                                 exit={{ opacity: 0, height: 0, marginBottom: 0 }}
                                 style={{
-                                    background: 'rgba(52, 211, 153, 0.2)',
-                                    border: '1px solid rgba(52, 211, 153, 0.3)',
-                                    color: '#34d399',
+                                    background: 'var(--success-bg)',
+                                    border: '1px solid var(--success-border)',
+                                    color: 'var(--success)',
                                     padding: '16px',
                                     borderRadius: '12px',
                                     display: 'flex',
@@ -265,7 +265,7 @@ export default function AdminRegister() {
 
                     {/* Heard From (Optional) */}
                     <div className="form-group">
-                        <label>Where did they hear about us? <span style={{ textTransform: 'none', color: 'rgba(255,255,255,0.4)', fontSize: '11px', fontWeight: 400 }}>(Optional)</span></label>
+                        <label>Where did they hear about us? <span style={{ textTransform: 'none', color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 400 }}>(Optional)</span></label>
                         <div className="input-wrapper">
                             <UserPlus size={18} className="input-icon" />
                             <input

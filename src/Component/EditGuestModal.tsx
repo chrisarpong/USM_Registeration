@@ -105,13 +105,14 @@ export default function EditGuestModal({ isOpen, onClose, log }: Props) {
                     exit={{ scale: 0.95, opacity: 0 }}
                     onClick={(e) => e.stopPropagation()}
                     style={{
-                        background: '#1e1e2e',
-                        border: '1px solid rgba(255,255,255,0.1)',
+                        background: 'var(--bg-surface)',
+                        border: '1px solid var(--border)',
                         borderRadius: '16px',
-                        padding: '24px',
+                        padding: '32px',
                         width: '100%',
                         maxWidth: '500px',
-                        color: 'white'
+                        boxShadow: 'var(--shadow-lg)',
+                        color: 'var(--text-primary)'
                     }}
                 >
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
@@ -126,12 +127,12 @@ export default function EditGuestModal({ isOpen, onClose, log }: Props) {
                         {/* Full Name */}
                         <div>
                             <label style={{ display: 'block', fontSize: '13px', color: 'gray', marginBottom: '6px' }}>Full Name</label>
-                            <div className="input-wrapper" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                            <div className="input-wrapper" style={{ background: 'var(--bg-base)', border: '1px solid var(--border)' }}>
                                 <User size={16} color="gray" style={{ marginLeft: '12px' }} />
                                 <input
                                     value={formData.full_name || ''}
                                     onChange={e => handleChange('full_name', e.target.value)}
-                                    style={{ background: 'transparent', border: 'none', color: 'white', padding: '10px' }}
+                                    style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', padding: '10px' }}
                                 />
                             </div>
                         </div>
@@ -139,12 +140,12 @@ export default function EditGuestModal({ isOpen, onClose, log }: Props) {
                         {/* Phone */}
                         <div>
                             <label style={{ display: 'block', fontSize: '13px', color: 'gray', marginBottom: '6px' }}>Phone</label>
-                            <div className="input-wrapper" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                            <div className="input-wrapper" style={{ background: 'var(--bg-base)', border: '1px solid var(--border)' }}>
                                 <Phone size={16} color="gray" style={{ marginLeft: '12px' }} />
                                 <input
                                     value={formData.phone_number || ''}
                                     onChange={e => handleChange('phone_number', e.target.value)}
-                                    style={{ background: 'transparent', border: 'none', color: 'white', padding: '10px' }}
+                                    style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', padding: '10px' }}
                                 />
                             </div>
                         </div>
@@ -153,11 +154,11 @@ export default function EditGuestModal({ isOpen, onClose, log }: Props) {
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                             <div>
                                 <label style={{ display: 'block', fontSize: '13px', color: 'gray', marginBottom: '6px' }}>Status</label>
-                                <div className="input-wrapper" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                <div className="input-wrapper" style={{ background: 'var(--bg-base)', border: '1px solid var(--border)' }}>
                                     <select
                                         value={formData.status || ''}
                                         onChange={e => handleChange('status', e.target.value)}
-                                        style={{ background: 'transparent', border: 'none', color: 'white', padding: '10px', width: '100%' }}
+                                        style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', padding: '10px', width: '100%' }}
                                     >
                                         <option value="Member">Member</option>
                                         <option value="Guest">Guest</option>
@@ -168,13 +169,13 @@ export default function EditGuestModal({ isOpen, onClose, log }: Props) {
                             {formData.status === 'Member' && (
                                 <div>
                                     <label style={{ display: 'block', fontSize: '13px', color: 'gray', marginBottom: '6px' }}>Branch</label>
-                                    <div className="input-wrapper" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                    <div className="input-wrapper" style={{ background: 'var(--bg-base)', border: '1px solid var(--border)' }}>
                                         <select
                                             value={formData.branch || ''}
                                             onChange={e => handleChange('branch', e.target.value)}
-                                            style={{ background: 'transparent', border: 'none', color: 'white', padding: '10px', width: '100%' }}
+                                            style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', padding: '10px', width: '100%' }}
                                         >
-                                            {branches.map(b => <option key={b} value={b}>{b}</option>)}
+                                            {branches.map(b => <option key={b.name} value={b.name}>{b.name.replace(/_/g, ' ')}</option>)}
                                         </select>
                                     </div>
                                 </div>
@@ -185,13 +186,13 @@ export default function EditGuestModal({ isOpen, onClose, log }: Props) {
                         {formData.status !== 'Member' && (
                             <div>
                                 <label style={{ display: 'block', fontSize: '13px', color: 'gray', marginBottom: '6px' }}>Invited By</label>
-                                <div className="input-wrapper" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                <div className="input-wrapper" style={{ background: 'var(--bg-base)', border: '1px solid var(--border)' }}>
                                     <UserPlus size={16} color="gray" style={{ marginLeft: '12px' }} />
                                     <input
                                         value={formData.invited_by || ''}
                                         onChange={e => handleChange('invited_by', e.target.value)}
                                         placeholder="Inviter's name"
-                                        style={{ background: 'transparent', border: 'none', color: 'white', padding: '10px' }}
+                                        style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', padding: '10px' }}
                                     />
                                 </div>
                             </div>
@@ -200,13 +201,13 @@ export default function EditGuestModal({ isOpen, onClose, log }: Props) {
                         {/* Heard From */}
                         <div>
                             <label style={{ display: 'block', fontSize: '13px', color: 'gray', marginBottom: '6px' }}>Where did they hear about us?</label>
-                            <div className="input-wrapper" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                            <div className="input-wrapper" style={{ background: 'var(--bg-base)', border: '1px solid var(--border)' }}>
                                 <UserPlus size={16} color="gray" style={{ marginLeft: '12px' }} />
                                 <input
                                     value={formData.heard_from || ''}
                                     onChange={e => handleChange('heard_from', e.target.value)}
                                     placeholder="e.g., Facebook, Friend, Flyer"
-                                    style={{ background: 'transparent', border: 'none', color: 'white', padding: '10px' }}
+                                    style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', padding: '10px' }}
                                 />
                             </div>
                         </div>
@@ -214,12 +215,12 @@ export default function EditGuestModal({ isOpen, onClose, log }: Props) {
                         {/* Location (Globally Required) */}
                         <div>
                             <label style={{ display: 'block', fontSize: '13px', color: 'gray', marginBottom: '6px' }}>Location</label>
-                            <div className="input-wrapper" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                            <div className="input-wrapper" style={{ background: 'var(--bg-base)', border: '1px solid var(--border)' }}>
                                 <input
                                     value={formData.location || ''}
                                     onChange={e => handleChange('location', e.target.value)}
                                     placeholder="Attendee location"
-                                    style={{ background: 'transparent', border: 'none', color: 'white', padding: '10px', width: '100%' }}
+                                    style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', padding: '10px', width: '100%' }}
                                 />
                             </div>
                         </div>
@@ -231,10 +232,10 @@ export default function EditGuestModal({ isOpen, onClose, log }: Props) {
                             onClick={onClose}
                             style={{
                                 padding: '10px 20px',
-                                borderRadius: '8px',
-                                border: '1px solid rgba(255,255,255,0.1)',
-                                background: 'transparent',
-                                color: 'white',
+                                background: 'var(--bg-subtle)',
+                                border: '1px solid var(--border)',
+                                borderRadius: '12px',
+                                color: 'var(--text-primary)',
                                 cursor: 'pointer'
                             }}
                         >

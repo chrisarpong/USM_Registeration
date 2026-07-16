@@ -34,12 +34,6 @@ export const run = mutation({
         for (const row of rows) { await ctx.db.delete(row._id); }
     } catch(e) {}
     
-    // Also delete adminUsers
-    try {
-        const rows = await ctx.db.query("adminUsers" as any).collect();
-        for (const row of rows) { await ctx.db.delete(row._id); }
-    } catch(e) {}
-
     return "All auth tables fully wiped";
   },
 });

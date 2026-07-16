@@ -7,43 +7,43 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* ─── Premium Dark Palette ─── */
-  --bg-base: #09090b;       /* Zinc 950 */
-  --bg-surface: #18181b;    /* Zinc 900 */
-  --bg-subtle: #27272a;     /* Zinc 800 */
+  /* ─── Professional Slate Palette ─── */
+  --bg-base: #f8fafc;       /* Slate 50 */
+  --bg-surface: #ffffff;    /* White */
+  --bg-subtle: #f1f5f9;     /* Slate 100 */
   
-  --primary: #4f46e5;       /* Indigo 600 */
-  --primary-hover: #4338ca; /* Indigo 700 */
-  --primary-light: #818cf8; /* Indigo 400 */
+  --primary: #1e3a8a;       /* Blue 900 (Deep Blue) */
+  --primary-hover: #1e40af; /* Blue 800 */
+  --primary-light: #dbeafe; /* Blue 100 */
   
-  --success: #10b981;
-  --success-bg: rgba(16, 185, 129, 0.1);
-  --success-border: rgba(16, 185, 129, 0.2);
+  --success: #059669;       /* Emerald 600 */
+  --success-bg: #d1fae5;    /* Emerald 100 */
+  --success-border: #a7f3d0; /* Emerald 200 */
 
-  --danger: #ef4444;
-  --danger-bg: rgba(239, 68, 68, 0.1);
+  --danger: #dc2626;        /* Red 600 */
+  --danger-bg: #fee2e2;     /* Red 100 */
 
   /* ─── Text ─── */
-  --text-primary: #f8fafc;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
+  --text-primary: #0f172a;  /* Slate 900 */
+  --text-secondary: #475569; /* Slate 600 */
+  --text-muted: #94a3b8;    /* Slate 400 */
 
   /* ─── Borders & Shadows ─── */
-  --border: #27272a;
-  --border-focus: #3f3f46;
+  --border: #e2e8f0;        /* Slate 200 */
+  --border-focus: #94a3b8;  /* Slate 400 */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.05);
 
   /* ─── Spacing ─── */
   --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
 
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   line-height: 1.6;
-  color-scheme: dark;
+  color-scheme: light;
   color: var(--text-primary);
 }
 
@@ -84,7 +84,7 @@ body {
 @media (max-width: 850px) {
   .page-wrapper {
     align-items: flex-start;
-    padding: 20px 16px;
+    padding: 12px 8px; /* Tighter padding for phones */
   }
 }
 
@@ -93,13 +93,11 @@ body {
   grid-template-columns: 1fr 1fr;
   max-width: 1100px;
   width: 100%;
-  border-radius: 24px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  background: rgba(24, 24, 27, 0.65);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
   position: relative;
   z-index: 10;
 }
@@ -366,12 +364,10 @@ select {
   width: 100%;
   max-width: 1000px;
   min-height: 700px;
-  background: rgba(30, 30, 35, 0.4);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
   overflow: hidden;
   position: relative;
   z-index: 10;
@@ -401,21 +397,33 @@ select {
 
 @media (max-width: 850px) {
   .registration-glass-layout {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
     min-height: auto;
+    border-radius: var(--radius-md); /* Less rounded on small screens */
   }
 
   .registration-left-panel {
-    min-height: 400px;
+    min-height: auto;
   }
 
   .registration-right-panel {
-    padding: 32px 24px;
+    padding: 24px 16px;
+    order: -1; /* Form appears FIRST on mobile */
   }
 
   .form-grid-2 {
     grid-template-columns: 1fr;
     gap: 16px;
+  }
+
+  .registration-map {
+    display: none !important;
+  }
+
+  .admin-modal {
+    padding: 24px !important;
+    max-height: 90vh !important;
   }
 }
 
@@ -512,18 +520,18 @@ select {
 }
 
 .status-badge.member {
-  background: var(--success-bg);
-  color: var(--success);
+  background: var(--primary-light);
+  color: var(--primary);
 }
 
 .status-badge.guest {
-  background: rgba(234, 179, 8, 0.1);
-  color: #eab308;
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
 }
 
 .status-badge.first-timer {
-  background: rgba(99, 102, 241, 0.1);
-  color: #818cf8;
+  background: var(--primary-light);
+  color: var(--primary);
 }
 
 .btn-icon {

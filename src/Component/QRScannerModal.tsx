@@ -56,12 +56,12 @@ export default function QRScannerModal({ isOpen, onClose, onScan }: QRScannerMod
                         style={{
                             width: '100%',
                             maxWidth: '500px',
-                            background: 'rgba(30, 30, 45, 0.95)',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            borderRadius: '24px',
+                            background: 'var(--bg-surface)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 'var(--radius-lg)',
                             padding: '32px',
                             position: 'relative',
-                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                            boxShadow: 'var(--shadow-lg)'
                         }}
                     >
                         <button
@@ -70,11 +70,11 @@ export default function QRScannerModal({ isOpen, onClose, onScan }: QRScannerMod
                                 position: 'absolute',
                                 top: '20px',
                                 right: '20px',
-                                background: 'rgba(255,255,255,0.05)',
-                                border: 'none',
+                                background: 'transparent',
+                                border: '1px solid var(--border)',
                                 borderRadius: '50%',
                                 padding: '8px',
-                                color: 'white',
+                                color: 'var(--text-primary)',
                                 cursor: 'pointer'
                             }}
                         >
@@ -86,8 +86,8 @@ export default function QRScannerModal({ isOpen, onClose, onScan }: QRScannerMod
                                 width: '56px',
                                 height: '56px',
                                 borderRadius: '16px',
-                                background: 'rgba(168, 85, 247, 0.1)',
-                                color: '#a855f7',
+                                background: 'var(--primary-bg)',
+                                color: 'var(--primary)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -95,21 +95,21 @@ export default function QRScannerModal({ isOpen, onClose, onScan }: QRScannerMod
                             }}>
                                 <Camera size={28} />
                             </div>
-                            <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'white', margin: '0 0 8px 0' }}>Scan Attendee Pass</h2>
-                            <p style={{ color: 'rgba(255,255,255,0.6)', margin: 0 }}>Point your camera at the registrant's QR code</p>
+                            <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 8px 0' }}>Scan Attendee Pass</h2>
+                            <p style={{ color: 'var(--text-secondary)', margin: 0 }}>Point your camera at the registrant's QR code</p>
                         </div>
 
                         <div id="reader" style={{ 
                             borderRadius: '16px', 
                             overflow: 'hidden', 
-                            border: '1px solid rgba(255,255,255,0.1)',
+                            border: '1px solid var(--border)',
                             background: 'black'
                         }}></div>
 
                         <p style={{ 
                             textAlign: 'center', 
                             marginTop: '24px', 
-                            color: 'rgba(255,255,255,0.4)', 
+                            color: 'var(--text-muted)', 
                             fontSize: '13px',
                             fontStyle: 'italic'
                         }}>

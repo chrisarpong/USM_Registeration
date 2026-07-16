@@ -15,7 +15,7 @@ export function Skeleton({ width = '100%', height = '20px', borderRadius = '8px'
                 width,
                 height,
                 borderRadius,
-                background: 'linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%)',
+                background: 'var(--bg-subtle)',
                 backgroundSize: '200% 100%',
                 animation: 'shimmer 1.5s ease-in-out infinite',
                 ...style,
@@ -87,8 +87,8 @@ export function TableSkeleton({ rows = 5 }: { rows?: number }) {
 export function ChartSkeleton() {
     return (
         <div style={{
-            background: 'rgba(255, 255, 255, 0.05)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border)',
             borderRadius: '16px',
             padding: '24px',
             marginBottom: '24px',
@@ -107,7 +107,7 @@ export function ChartSkeleton() {
                         style={{
                             flex: 1,
                             borderRadius: '4px 4px 0 0',
-                            background: 'linear-gradient(to top, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.05))',
+                            background: 'var(--primary-bg)',
                         }}
                     />
                 ))}
@@ -122,8 +122,8 @@ export function RegistrationSkeleton() {
         <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
             <div style={{
                 maxWidth: '550px', width: '100%', padding: '40px', textAlign: 'center',
-                background: 'rgba(20, 20, 35, 0.5)', borderRadius: '24px',
-                border: '1px solid rgba(255,255,255,0.1)'
+                background: 'var(--bg-surface)', borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--border)'
             }}>
                 <Skeleton width="80px" height="80px" borderRadius="50%" style={{ margin: '0 auto 20px' }} />
                 <Skeleton width="200px" height="20px" style={{ margin: '0 auto 16px' }} />

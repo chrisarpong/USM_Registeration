@@ -189,9 +189,9 @@ export default function AdminReports() {
             style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: '40px' }}
         >
             <div className="registration-container" style={{ display: 'block', minHeight: 'auto', padding: '0', overflow: 'hidden' }}>
-                <div className="form-panel" style={{ border: 'none', background: 'transparent', padding: '40px' }}>
+                <div className="form-panel" style={{ border: 'none', background: 'transparent' }}>
 
-                    <h2 style={{ fontSize: '24px', marginBottom: '8px', color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <h2 style={{ fontSize: '24px', marginBottom: '8px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <BarChartIcon size={24} color="var(--primary)" /> Smart Report Generator
                     </h2>
                     <p className="form-subtitle">Use advanced filters to slice attendance data precisely as you need it.</p>
@@ -305,14 +305,14 @@ export default function AdminReports() {
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                style={{ marginTop: '40px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '32px' }}
+                                style={{ marginTop: '40px', borderTop: '1px solid var(--border)', paddingTop: '32px' }}
                             >
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                                     <div>
-                                        <h3 style={{ fontSize: '20px', color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <TrendingUp size={20} color="#10b981" /> Report Insights
+                                        <h3 style={{ fontSize: '20px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <TrendingUp size={20} color="var(--success)" /> Report Insights
                                         </h3>
-                                        <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px', marginTop: '4px' }}>Found {reportData.length} records matching your exact criteria.</p>
+                                        <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>Found {reportData.length} records matching your exact criteria.</p>
                                     </div>
                                     <button
                                         onClick={downloadCSV}
@@ -340,24 +340,24 @@ export default function AdminReports() {
 
                                 {/* Smart Stats Grid */}
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '32px' }}>
-                                    <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', padding: '20px', borderRadius: '16px' }}>
+                                    <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', padding: '20px', borderRadius: 'var(--radius-lg)' }}>
                                         <div style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Found</div>
-                                        <div style={{ fontSize: '28px', fontWeight: 700, color: 'white' }}>{analytics.total}</div>
+                                        <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-primary)' }}>{analytics.total}</div>
                                     </div>
-                                    <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', padding: '20px', borderRadius: '16px' }}>
+                                    <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', padding: '20px', borderRadius: 'var(--radius-lg)' }}>
                                         <div style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Check-In Rate</div>
-                                        <div style={{ fontSize: '28px', fontWeight: 700, color: '#34d399' }}>{analytics.checkInRate}%</div>
+                                        <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--success)' }}>{analytics.checkInRate}%</div>
                                     </div>
-                                    <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', padding: '20px', borderRadius: '16px' }}>
+                                    <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', padding: '20px', borderRadius: 'var(--radius-lg)' }}>
                                         <div style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Peak Arrival Time</div>
-                                        <div style={{ fontSize: '28px', fontWeight: 700, color: '#60a5fa' }}>{analytics.peakTime}</div>
+                                        <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--primary)' }}>{analytics.peakTime}</div>
                                     </div>
-                                    <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', padding: '20px', borderRadius: '16px' }}>
+                                    <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', padding: '20px', borderRadius: 'var(--radius-lg)' }}>
                                         <div style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Demographics</div>
-                                        <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', lineHeight: '1.6' }}>
-                                            <span style={{color: '#a855f7'}}>●</span> {analytics.firstTimers} First Timers<br/>
-                                            <span style={{color: '#fbbf24'}}>●</span> {analytics.guests} Guests<br/>
-                                            <span style={{color: '#34d399'}}>●</span> {analytics.members} Members
+                                        <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                                            <span style={{color: 'var(--primary)'}}>●</span> {analytics.firstTimers} First Timers<br/>
+                                            <span style={{color: '#eab308'}}>●</span> {analytics.guests} Guests<br/>
+                                            <span style={{color: 'var(--success)'}}>●</span> {analytics.members} Members
                                         </div>
                                     </div>
                                 </div>
@@ -377,8 +377,8 @@ export default function AdminReports() {
                                             <tbody>
                                                 {reportData.slice(0, 5).map(row => (
                                                     <tr key={row._id}>
-                                                        <td style={{ color: 'rgba(255,255,255,0.6)' }}>{new Date(row.created_at).toLocaleDateString()}</td>
-                                                        <td style={{ color: 'white', fontWeight: 500 }}>{row.full_name}</td>
+                                                        <td style={{ color: 'var(--text-secondary)' }}>{new Date(row.created_at).toLocaleDateString()}</td>
+                                                        <td style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{row.full_name}</td>
                                                         <td>
                                                             <span className={`status-badge ${row.status.toLowerCase().replace(' ', '-')}`}>
                                                                 {row.status}
@@ -390,7 +390,7 @@ export default function AdminReports() {
                                             </tbody>
                                         </table>
                                         {reportData.length > 5 && (
-                                            <div style={{ padding: '16px', textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontSize: '13px', borderTop: '1px solid var(--border)' }}>
+                                            <div style={{ padding: '16px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '13px', borderTop: '1px solid var(--border)' }}>
                                                 ...and {reportData.length - 5} more records
                                             </div>
                                         )}

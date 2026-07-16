@@ -142,7 +142,7 @@ export default function AdminDashboard() {
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <CalendarDays size={20} color="#a855f7" />
-                    <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>Viewing Event:</span>
+                    <span style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: 500 }}>Viewing Event:</span>
                 </div>
                 <select
                     value={selectedEventId}
@@ -151,12 +151,12 @@ export default function AdminDashboard() {
                     }}
                     style={{
                         padding: '10px 16px',
-                        background: 'rgba(168, 85, 247, 0.1)',
-                        border: '1px solid rgba(168, 85, 247, 0.25)',
-                        borderRadius: '10px',
-                        color: 'white',
+                        background: 'var(--bg-surface)',
+                        border: '1px solid var(--border)',
+                        borderRadius: 'var(--radius-sm)',
+                        color: 'var(--text-primary)',
                         fontSize: '14px',
-                        fontWeight: 600,
+                        fontWeight: 500,
                         minWidth: '220px',
                         cursor: 'pointer'
                     }}
@@ -169,10 +169,10 @@ export default function AdminDashboard() {
                 </select>
                 {selectedEvent && (
                     <span style={{
-                        padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 600,
-                        background: selectedEvent.is_active ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.05)',
-                        color: selectedEvent.is_active ? '#34d399' : 'rgba(255,255,255,0.4)',
-                        border: `1px solid ${selectedEvent.is_active ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255,255,255,0.1)'}`,
+                        padding: '4px 10px', borderRadius: 'var(--radius-sm)', fontSize: '12px', fontWeight: 500,
+                        background: selectedEvent.is_active ? 'var(--success-bg)' : 'var(--bg-subtle)',
+                        color: selectedEvent.is_active ? 'var(--success)' : 'var(--text-secondary)',
+                        border: `1px solid ${selectedEvent.is_active ? 'var(--success-border)' : 'var(--border)'}`,
                     }}>
                         {selectedEvent.is_active ? '● Live' : 'Past Event'}
                     </span>
@@ -185,41 +185,41 @@ export default function AdminDashboard() {
             ) : (
                 <div className="stats-grid">
                     <div className="stat-card">
-                        <div className="icon" style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa' }}><Users size={24} /></div>
+                        <div className="icon"><Users size={24} color="var(--primary)" /></div>
                         <div>
                             <h4>Total Registered</h4>
                             <h1>{stats.total}</h1>
                         </div>
                     </div>
                     <div className="stat-card">
-                        <div className="icon" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#34d399' }}><UserCheck size={24} /></div>
+                        <div className="icon"><UserCheck size={24} color="var(--success)" /></div>
                         <div>
                             <h4>Members</h4>
                             <h1>{stats.members}</h1>
                         </div>
                     </div>
                     <div className="stat-card">
-                        <div className="icon" style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24' }}><UserPlus size={24} /></div>
+                        <div className="icon"><UserPlus size={24} color="#eab308" /></div>
                         <div>
                             <h4>Guests</h4>
                             <h1>{stats.guests}</h1>
                         </div>
                     </div>
                     <div className="stat-card">
-                        <div className="icon" style={{ background: 'rgba(168, 85, 247, 0.2)', color: '#a855f7' }}><Sparkles size={24} /></div>
+                        <div className="icon"><Sparkles size={24} color="var(--text-secondary)" /></div>
                         <div>
                             <h4>First Timers</h4>
                             <h1>{stats.firstTimers}</h1>
                         </div>
                     </div>
-                    <div className="stat-card" style={{ border: '1px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.05)' }}>
-                        <div className="icon" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#10b981' }}><CheckCircle size={24} /></div>
+                    <div className="stat-card">
+                        <div className="icon"><CheckCircle size={24} color="var(--success)" /></div>
                         <div>
                             <h4 style={{ color: '#10b981' }}>Checked In</h4>
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                                 <h1 style={{ color: '#10b981', margin: 0 }}>{stats.checkedIn}</h1>
                                 {stats.total > 0 && (
-                                    <span style={{ color: 'rgba(16, 185, 129, 0.8)', fontSize: '14px', fontWeight: 600 }}>
+                                    <span style={{ color: 'var(--success)', fontSize: '14px', fontWeight: 600 }}>
                                         ({Math.round((stats.checkedIn / stats.total) * 100)}%)
                                     </span>
                                 )}
@@ -240,10 +240,10 @@ export default function AdminDashboard() {
                     style={{
                         width: '200px',
                         padding: '10px 16px',
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '1px solid rgba(255,255,255,0.1)',
+                        background: 'var(--bg-subtle)',
+                        border: '1px solid var(--border)',
                         borderRadius: '10px',
-                        color: 'white'
+                        color: 'var(--text-primary)'
                     }}
                 >
                     <option value="">All Branches</option>
@@ -252,7 +252,7 @@ export default function AdminDashboard() {
                     ))}
                 </select>
 
-                <div style={{ marginLeft: 'auto', color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>
+                <div style={{ marginLeft: 'auto', color: 'var(--text-muted)', fontSize: '13px' }}>
                     Showing {paginatedLogs?.length || 0} of {stats?.total || 0} records
                 </div>
 
@@ -269,9 +269,9 @@ export default function AdminDashboard() {
                     document.body.appendChild(link);
                     link.click();
                 }} className="btn-secondary" style={{
-                    padding: '10px 16px', background: 'rgba(59, 130, 246, 0.1)',
-                    border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '10px',
-                    color: '#60a5fa', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 500
+                    padding: '10px 16px', background: 'var(--primary-bg)',
+                    border: '1px solid var(--border)', borderRadius: '10px',
+                    color: 'var(--primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 500
                 }}>
                     <Download size={16} /> Export CSV
                 </button>
@@ -280,9 +280,9 @@ export default function AdminDashboard() {
                     onClick={() => setIsScannerOpen(true)}
                     title="Scan Attendee Pass"
                     style={{
-                        padding: '10px 16px', background: 'rgba(168, 85, 247, 0.1)',
-                        border: '1px solid rgba(168, 85, 247, 0.2)', borderRadius: '10px',
-                        color: '#a855f7', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600
+                        padding: '10px 16px', background: 'var(--primary-bg)',
+                        border: '1px solid var(--border)', borderRadius: '10px',
+                        color: 'var(--primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600
                     }}
                 >
                     <Scan size={16} /> Scan Pass
@@ -325,8 +325,8 @@ export default function AdminDashboard() {
                                     return matchSearch && matchBranch;
                                 }).map((log: any) => (
                                     <tr key={log._id}>
-                                    <td style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px' }}>
-                                        <div style={{ fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginBottom: '4px' }}>
+                                    <td style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>
+                                        <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
                                             {new Date(log.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                                         </div>
                                         <div>
@@ -336,14 +336,13 @@ export default function AdminDashboard() {
                                     <td style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px' }}>
                                         <div style={{
                                             width: '32px', height: '32px', borderRadius: '50%',
-                                            background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
+                                            background: 'var(--primary)',
                                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            fontSize: '12px', fontWeight: 'bold', color: 'white',
-                                            boxShadow: '0 2px 10px rgba(99, 102, 241, 0.3)'
+                                            fontSize: '12px', fontWeight: 'bold', color: 'white'
                                         }}>
                                             {getInitials(log.full_name)}
                                         </div>
-                                        <span style={{ fontWeight: 600, color: 'white', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis' }} title={log.full_name}>{log.full_name}</span>
+                                        <span style={{ fontWeight: 600, color: 'var(--text-primary)', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis' }} title={log.full_name}>{log.full_name}</span>
                                     </td>
                                     <td>
                                         <span className={`status-badge ${log.status.toLowerCase().replace(' ', '-')}`}>
@@ -353,33 +352,30 @@ export default function AdminDashboard() {
                                     <td style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis' }} title={log.branch}>{log.branch === 'N/A' ? '-' : log.branch}</td>
                                     <td style={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis' }} title={log.location || '-'}>{log.location || '-'}</td>
                                     <td>{log.phone_number}</td>
-                                    <td style={{ color: 'rgba(255,255,255,0.6)' }}>{log.invited_by || '-'}</td>
-                                    <td style={{ color: 'rgba(255,255,255,0.6)', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis' }} title={log.heard_from || '-'}>{log.heard_from || '-'}</td>
+                                    <td style={{ color: 'var(--text-secondary)' }}>{log.invited_by || '-'}</td>
+                                    <td style={{ color: 'var(--text-secondary)', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis' }} title={log.heard_from || '-'}>{log.heard_from || '-'}</td>
                                     <td style={{ textAlign: 'center' }}>
-                                        <motion.button
-                                            whileHover={{ scale: 1.05, boxShadow: log.checked_in ? '0 4px 15px rgba(16, 185, 129, 0.2)' : '0 4px 15px rgba(255,255,255,0.1)' }}
-                                            whileTap={{ scale: 0.95 }}
+                                        <button
                                             onClick={() => handleCheckIn(log._id, log.checked_in)}
                                             style={{
-                                                background: log.checked_in ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05))' : 'rgba(255,255,255,0.03)',
-                                                border: log.checked_in ? '1px solid rgba(16, 185, 129, 0.5)' : '1px solid rgba(255,255,255,0.1)',
-                                                color: log.checked_in ? '#34d399' : '#9ca3af',
+                                                background: log.checked_in ? 'var(--success-bg)' : 'var(--bg-subtle)',
+                                                border: log.checked_in ? '1px solid var(--success-border)' : '1px solid var(--border)',
+                                                color: log.checked_in ? 'var(--success)' : 'var(--text-secondary)',
                                                 padding: '8px 16px',
-                                                borderRadius: '24px',
+                                                borderRadius: 'var(--radius-xl)',
                                                 cursor: 'pointer',
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 gap: '8px',
                                                 margin: '0 auto',
-                                                transition: 'background 0.3s ease, border 0.3s ease, color 0.3s ease',
+                                                transition: 'all 0.2s ease',
                                                 fontSize: '13px',
-                                                fontWeight: 600,
-                                                textShadow: log.checked_in ? '0 2px 4px rgba(0,0,0,0.3)' : 'none'
+                                                fontWeight: 500
                                             }}
                                         >
                                             {log.checked_in ? <CheckCircle size={16} strokeWidth={2.5} /> : <XCircle size={16} strokeWidth={2} />}
                                             {log.checked_in ? 'Checked In' : 'Pending'}
-                                        </motion.button>
+                                        </button>
                                     </td>
                                     <td>
                                         {confirmDeleteId === log._id ? (
@@ -392,7 +388,7 @@ export default function AdminDashboard() {
                                                 </button>
                                                 <button
                                                     onClick={() => setConfirmDeleteId(null)}
-                                                    style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}
+                                                    style={{ padding: '6px 12px', background: 'var(--bg-subtle)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}
                                                 >
                                                     Cancel
                                                 </button>
@@ -403,17 +399,15 @@ export default function AdminDashboard() {
                                                     onClick={() => openEditModal(log)}
                                                     className="btn-icon"
                                                     title="Edit"
-                                                    style={{ padding: '6px', background: 'rgba(96, 165, 250, 0.1)', border: '1px solid rgba(96, 165, 250, 0.2)' }}
                                                 >
-                                                    <Edit2 size={16} color="#60a5fa" />
+                                                    <Edit2 size={16} />
                                                 </button>
                                                 <button
                                                     onClick={() => setConfirmDeleteId(log._id)}
                                                     className="btn-icon"
                                                     title="Delete"
-                                                    style={{ padding: '6px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)' }}
                                                 >
-                                                    <Trash2 size={16} color="#ef4444" />
+                                                    <Trash2 size={16} />
                                                 </button>
                                             </div>
                                         )}
@@ -433,24 +427,24 @@ export default function AdminDashboard() {
                         onClick={() => loadMore(50)}
                         style={{
                             padding: '10px 24px',
-                            background: 'rgba(255,255,255,0.1)',
-                            border: '1px solid rgba(255,255,255,0.2)',
+                            background: 'var(--bg-subtle)',
+                            border: '1px solid var(--border)',
                             borderRadius: '8px',
-                            color: 'white',
+                            color: 'var(--text-primary)',
                             cursor: 'pointer',
                             fontSize: '14px',
                             fontWeight: 500,
                             transition: 'all 0.2s'
                         }}
-                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
-                        onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                        onMouseOver={(e) => e.currentTarget.style.background = 'var(--bg-hover)'}
+                        onMouseOut={(e) => e.currentTarget.style.background = 'var(--bg-subtle)'}
                     >
                         Load More Records
                     </button>
                 </div>
             )}
             {paginatedStatus === "LoadingMore" && (
-                <div style={{ padding: '20px', textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontSize: '14px' }}>
+                <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px' }}>
                     Loading more records...
                 </div>
             )}

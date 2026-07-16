@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 
 import flyerFallback from '../assets/USM.jpeg'
-import bgImage from '../assets/14.JPEG'
+import bgImage from '../assets/13.JPEG'
 import logo from '../assets/logo.png'
 import { RegistrationSkeleton } from './Skeletons'
 
@@ -125,15 +125,39 @@ export default function Registration() {
         }
     }
 
-    if (eventError) {
-        return (
-            <div className="registration-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', width: '100vw' }}>
-                <div style={{ textAlign: 'center', padding: '40px', background: 'var(--bg-base)', borderRadius: '16px' }}>
-                    <h2 style={{ color: 'var(--danger)', marginBottom: '16px' }}>Configuration Error</h2>
-                    <p style={{ color: 'var(--text-secondary)' }}>{eventError}</p>
+    const NoEventState = ({ title, description }: { title: string, description: string }) => (
+        <div className="page-wrapper">
+            <div style={{
+                position: 'fixed', inset: -20, backgroundImage: `url(${bgImage})`,
+                backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(10px)', zIndex: -2
+            }} />
+            <div style={{
+                position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: -1
+            }} />
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}
+                style={{
+                    background: 'rgba(30, 30, 35, 0.4)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '24px', padding: '60px 40px',
+                    maxWidth: '500px', width: '100%', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                }}
+            >
+                <div style={{ 
+                    width: '80px', height: '80px', background: 'rgba(255,255,255,0.05)', borderRadius: '50%', 
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px auto', border: '1px solid rgba(255,255,255,0.1)'
+                }}>
+                    <Calendar size={32} color="#a1a1aa" />
                 </div>
-            </div>
-        )
+                <h2 style={{ fontSize: '28px', color: 'white', marginBottom: '16px', fontWeight: 700 }}>{title}</h2>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '16px', lineHeight: 1.6, marginBottom: '0' }}>
+                    {description}
+                </p>
+            </motion.div>
+        </div>
+    )
+
+    if (eventError) {
+        return <NoEventState title="Registration Not Open" description="Registration for the next event will open soon. Please check back later." />
     }
 
     if (eventLoading || !event) {
@@ -147,11 +171,7 @@ export default function Registration() {
     const eventDescription = event.description || 'The Unending Spirit meeting returns. Get ready🔥'
     const registrationOpen = event?.is_registration_open ?? false;
     if (!registrationOpen) {
-        return (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'white' }}>
-                Registration is currently closed.
-            </div>
-        )
+        return <NoEventState title="Registration Closed" description="Registration for this event is currently closed." />
     }
     const eventFlyer = event.flyer_url || flyerFallback
 
@@ -288,7 +308,7 @@ export default function Registration() {
                         </div>
 
                         {/* Embedded Map */}
-                        <div style={{ 
+                        <div className="registration-map" style={{ 
                             marginTop: '32px', 
                             width: '100%', 
                             height: '180px', 
@@ -314,7 +334,7 @@ export default function Registration() {
 
                 {/* ─── RIGHT PANEL (Glass Form) ─── */}
                 <div className="registration-right-panel">
-                    <h2 style={{ fontSize: '28px', color: 'white', marginBottom: '8px', fontWeight: 700 }}>Register Now</h2>
+                    <h2 style={{ fontSize: '28px', color: 'var(--text-primary)', marginBottom: '8px', fontWeight: 700 }}>Register Now</h2>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '32px' }}>Fill in your details to confirm attendance</p>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -405,7 +425,7 @@ export default function Registration() {
                                             className="glass-input"
                                         >
                                             {branches.length === 0 && <option disabled>Loading...</option>}
-                                            {branches.map((b) => <option key={b._id} value={b.name}>{b.name}</option>)}
+                                            {branches.map((b) => <option key={b._id} value={b.name}>{b.name.replace(/_/g, ' ')}</option>)}
                                         </select>
                                     </div>
                                 </motion.div>
@@ -456,7 +476,7 @@ export default function Registration() {
 
                         {/* Heard From */}
                         <div className="form-group" style={{ marginBottom: 0 }}>
-                            <label className="glass-label">Where did you hear about us? <span style={{ textTransform: 'none', color: 'rgba(255,255,255,0.4)', fontSize: '11px', fontWeight: 400 }}>(Optional)</span></label>
+                            <label className="glass-label">Where did you hear about us? <span style={{ textTransform: 'none', color: 'var(--text-muted)', fontSize: '11px', fontWeight: 400 }}>(Optional)</span></label>
                             <div className="glass-input-wrapper">
                                 <UserPlus size={16} style={{ color: 'var(--text-muted)', marginRight: '12px' }} />
                                 <input
@@ -479,9 +499,7 @@ export default function Registration() {
                         </button>
                     </div>
 
-                    <div style={{ marginTop: 'auto', paddingTop: '24px', textAlign: 'center' }}>
-                        <a href="/login" style={{ fontSize: '13px', color: 'var(--text-muted)', textDecoration: 'none' }}>Admin Login</a>
-                    </div>
+
                 </div>
             </motion.div>
         </div>
