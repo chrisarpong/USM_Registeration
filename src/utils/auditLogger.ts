@@ -14,7 +14,8 @@ export function useAuditLogger() {
             await logActivity({
                 action,
                 details,
-                ipAddress
+                ipAddress,
+                adminName: localStorage.getItem('admin_name') || 'Admin'
             });
         } catch (error) {
             console.error('Failed to log admin activity:', error);

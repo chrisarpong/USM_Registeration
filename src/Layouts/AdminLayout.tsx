@@ -257,6 +257,11 @@ export default function AdminLayout() {
                         )}
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            {!isMobile && localStorage.getItem('admin_name') && (
+                                <span style={{ color: 'var(--text-secondary)', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    Welcome, <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{localStorage.getItem('admin_name')}</span>
+                                </span>
+                            )}
                             <div className="btn-icon" style={{ borderRadius: '50%' }}>
                                 <Bell size={18} />
                             </div>

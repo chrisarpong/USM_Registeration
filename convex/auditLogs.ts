@@ -6,10 +6,11 @@ export const logActivity = mutation({
     action: v.string(),
     details: v.string(),
     ipAddress: v.string(),
+    adminName: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
 
-    const adminName = "Admin";
+    const adminName = args.adminName || "Admin";
 
     await ctx.db.insert("auditLogs", {
       adminId: "admin",

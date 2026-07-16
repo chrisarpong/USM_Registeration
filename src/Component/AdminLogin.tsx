@@ -8,6 +8,7 @@ import bgImage from '../assets/13.JPEG'
 import { useAuditLogger } from '../utils/auditLogger'
 
 export default function AdminLogin() {
+    const [adminName, setAdminName] = useState('')
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
@@ -22,7 +23,8 @@ export default function AdminLogin() {
         setTimeout(() => {
             if (username === 'Admin@2026' && password === 'USMADMIN@26') {
                 localStorage.setItem('admin_auth', 'true')
-                toast.success('Welcome back, Admin!')
+                localStorage.setItem('admin_name', adminName.trim() || 'Admin')
+                toast.success(`Welcome back, ${adminName.trim() || 'Admin'}!`)
                 log('LOGIN', `Admin logged in successfully`)
                 navigate('/admin')
             } else {
@@ -104,6 +106,21 @@ export default function AdminLogin() {
 
                 <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="glass-label">Your First Name</label>
+                        <div className="glass-input-wrapper">
+                            <User size={18} style={{ color: 'var(--text-muted)', marginRight: '12px' }} />
+                            <input
+                                type="text"
+                                placeholder="E.g. John"
+                                value={adminName}
+                                onChange={(e) => setAdminName(e.target.value)}
+                                required
+                                className="glass-input"
+                            />
+                        </div>
+                    </div>
+                    
+                    <div className="form-group" style={{ marginBottom: 0 }}>
                         <label className="glass-label">Username</label>
                         <div className="glass-input-wrapper">
                             <User size={18} style={{ color: 'var(--text-muted)', marginRight: '12px' }} />
@@ -135,7 +152,7 @@ export default function AdminLogin() {
 
                     <button
                         type="submit"
-                        disabled={loading || !username || !password}
+                        disabled={loading || !username || !password || !adminName}
                         style={{
                             marginTop: '8px',
                             height: '48px',
@@ -149,8 +166,8 @@ export default function AdminLogin() {
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: '8px',
-                            cursor: loading || !username || !password ? 'not-allowed' : 'pointer',
-                            opacity: loading || !username || !password ? 0.7 : 1,
+                            cursor: loading || !username || !password || !adminName ? 'not-allowed' : 'pointer',
+                            opacity: loading || !username || !password || !adminName ? 0.7 : 1,
                             transition: 'all 0.2s'
                         }}
                     >
