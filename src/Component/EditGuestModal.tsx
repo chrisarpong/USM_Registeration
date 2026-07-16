@@ -175,7 +175,7 @@ export default function EditGuestModal({ isOpen, onClose, log }: Props) {
                                             onChange={e => handleChange('branch', e.target.value)}
                                             style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', padding: '10px', width: '100%' }}
                                         >
-                                            {branches.map(b => <option key={b.name} value={b.name}>{b.name.replace(/_/g, ' ')}</option>)}
+                                            {branches.map(b => <option key={b} value={b}>{b.replace(/_/g, ' ')}</option>)}
                                         </select>
                                     </div>
                                 </div>
