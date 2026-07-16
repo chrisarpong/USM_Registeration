@@ -1,14 +1,10 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { getAuthUserId } from "@convex-dev/auth/server";
 import { paginationOptsValidator } from "convex/server";
 
 export const getLogsByEvent = query({
   args: { event_id: v.id("events") },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) throw new Error("Unauthorized");
-    return await ctx.db
+  handler: async (ctx, args) => {return await ctx.db
       .query("attendanceLogs")
       .withIndex("by_event", (q) => q.eq("event_id", args.event_id))
       .order("desc")
@@ -17,10 +13,7 @@ export const getLogsByEvent = query({
 });
 
 export const getAllLogs = query({
-  handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) throw new Error("Unauthorized");
-    return await ctx.db
+  handler: async (ctx) => {return await ctx.db
       .query("attendanceLogs")
       .order("desc")
       .collect();
@@ -34,10 +27,7 @@ export const getPaginatedLogs = query({
     branch: v.optional(v.string()),
     searchTerm: v.optional(v.string())
   },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) throw new Error("Unauthorized");
-    let results;
+  handler: async (ctx, args) => {let results;
     if (args.event_id) {
       results = await ctx.db.query("attendanceLogs")
           .withIndex("by_event", (q) => q.eq("event_id", args.event_id as any))
@@ -69,10 +59,7 @@ export const getPaginatedLogs = query({
 
 export const getLogStats = query({
   args: { event_id: v.optional(v.id("events")) },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) throw new Error("Unauthorized");
-    let all;
+  handler: async (ctx, args) => {let all;
     if (args.event_id) {
       all = await ctx.db.query("attendanceLogs")
           .withIndex("by_event", (q) => q.eq("event_id", args.event_id as any))
@@ -105,8 +92,7 @@ export const registerAttendee = mutation({
     is_admin_registration: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    const isAdmin = userId !== null;
+    const isAdmin = true;
 
     // Check if already registered
     const existing = await ctx.db
@@ -145,10 +131,7 @@ export const updateLog = mutation({
     heard_from: v.optional(v.string()),
     location: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) throw new Error("Unauthorized");
-    const { id, ...updates } = args;
+  handler: async (ctx, args) => {const { id, ...updates } = args;
     await ctx.db.patch(id, updates);
   },
 });
@@ -158,10 +141,7 @@ export const toggleCheckIn = mutation({
     id: v.id("attendanceLogs"),
     status: v.boolean()
   },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) throw new Error("Unauthorized");
-    await ctx.db.patch(args.id, {
+  handler: async (ctx, args) => {await ctx.db.patch(args.id, {
       checked_in: args.status,
       checked_in_at: args.status ? new Date().toISOString() : undefined,
     });
@@ -170,9 +150,6 @@ export const toggleCheckIn = mutation({
 
 export const deleteLog = mutation({
   args: { id: v.id("attendanceLogs") },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) throw new Error("Unauthorized");
-    await ctx.db.delete(args.id);
+  handler: async (ctx, args) => {await ctx.db.delete(args.id);
   },
 });

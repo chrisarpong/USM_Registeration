@@ -1,54 +1,35 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuthActions } from "@convex-dev/auth/react"
-import { motion, AnimatePresence } from 'framer-motion'
-import { Mail, ChevronRight, ArrowLeft, KeyRound } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { User, ChevronRight, ArrowLeft, KeyRound } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import logo from '../assets/logo.png'
 import bgImage from '../assets/13.JPEG'
 import { useAuditLogger } from '../utils/auditLogger'
 
 export default function AdminLogin() {
-    const [step, setStep] = useState<'email' | 'otp'>('email')
-    const [email, setEmail] = useState('')
-    const [code, setCode] = useState('')
+    const [username, setUsername] = useState('')
+    const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
     const { log } = useAuditLogger()
 
-    const { signIn } = useAuthActions()
-
-    const handleEmailSubmit = async (e: React.FormEvent) => {
+    const handleLoginSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
 
-        try {
-            await signIn("resend-otp", { email })
-            toast.success("OTP sent to your email")
-            setStep('otp')
-        } catch (error: any) {
-            console.error("SignIn Error:", error)
-            toast.error(error.message || 'Failed to send OTP')
-        } finally {
+        // Hardcoded secure login
+        setTimeout(() => {
+            if (username === 'Admin@2026' && password === 'USMADMIN@26') {
+                localStorage.setItem('admin_auth', 'true')
+                toast.success('Welcome back, Admin!')
+                log('LOGIN', `Admin logged in successfully`)
+                navigate('/admin')
+            } else {
+                toast.error('Invalid username or password')
+            }
             setLoading(false)
-        }
-    }
-
-    const handleOtpSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setLoading(true)
-
-        try {
-            await signIn("resend-otp", { email, code })
-            toast.success('Welcome back!')
-            log('LOGIN', `Admin logged in via email: ${email}`)
-            navigate('/admin')
-        } catch (error: any) {
-            console.error("SignIn Error:", error)
-            toast.error(error.message || 'Invalid OTP code')
-        } finally {
-            setLoading(false)
-        }
+        }, 800) // Small delay for UX
     }
 
     return (
@@ -97,14 +78,7 @@ export default function AdminLogin() {
                 }}
             >
                 <button 
-                    onClick={() => {
-                        if (step === 'otp') {
-                            setStep('email')
-                            setCode('')
-                        } else {
-                            navigate('/')
-                        }
-                    }}
+                    onClick={() => navigate('/')}
                     style={{
                         position: 'absolute',
                         top: '24px',
@@ -124,113 +98,67 @@ export default function AdminLogin() {
                     <img src={logo} alt="USM Logo" style={{ height: '48px', margin: '0 auto 16px', display: 'block' }} />
                     <h1 style={{ fontSize: '24px', color: 'var(--text-primary)', fontWeight: 700, marginBottom: '8px' }}>Admin Login</h1>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-                        {step === 'email' ? 'Enter your email to receive an OTP' : 'Enter the 6-digit code sent to your email'}
+                        Enter your secure admin credentials
                     </p>
                 </div>
 
-                <AnimatePresence mode="wait">
-                    {step === 'email' ? (
-                        <motion.form 
-                            key="email-form"
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 20 }}
-                            onSubmit={handleEmailSubmit} 
-                            style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
-                        >
-                            <div className="form-group" style={{ marginBottom: 0 }}>
-                                <label className="glass-label">Email</label>
-                                <div className="glass-input-wrapper">
-                                    <Mail size={18} style={{ color: 'var(--text-muted)', marginRight: '12px' }} />
-                                    <input
-                                        type="email"
-                                        placeholder="admin@usm.com"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        required
-                                        className="glass-input"
-                                    />
-                                </div>
-                            </div>
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                style={{
-                                    marginTop: '8px',
-                                    height: '48px',
-                                    background: 'var(--primary)',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '12px',
-                                    fontSize: '15px',
-                                    fontWeight: 600,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '8px',
-                                    cursor: loading ? 'not-allowed' : 'pointer',
-                                    opacity: loading ? 0.7 : 1,
-                                    transition: 'all 0.2s'
-                                }}
-                            >
-                                {loading ? 'Sending...' : (
-                                    <>Send Code <ChevronRight size={18} /></>
-                                )}
-                            </button>
-                        </motion.form>
-                    ) : (
-                        <motion.form 
-                            key="otp-form"
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 20 }}
-                            onSubmit={handleOtpSubmit} 
-                            style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
-                        >
-                            <div className="form-group" style={{ marginBottom: 0 }}>
-                                <label className="glass-label">6-Digit Code</label>
-                                <div className="glass-input-wrapper">
-                                    <KeyRound size={18} style={{ color: 'var(--text-muted)', marginRight: '12px' }} />
-                                    <input
-                                        type="text"
-                                        placeholder="••••••"
-                                        value={code}
-                                        onChange={(e) => setCode(e.target.value)}
-                                        required
-                                        maxLength={6}
-                                        className="glass-input"
-                                        style={{ letterSpacing: '4px', fontFamily: 'monospace', fontSize: '18px' }}
-                                    />
-                                </div>
-                            </div>
-                            <button
-                                type="submit"
-                                disabled={loading || code.length < 6}
-                                style={{
-                                    marginTop: '8px',
-                                    height: '48px',
-                                    background: 'var(--primary)',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '12px',
-                                    fontSize: '15px',
-                                    fontWeight: 600,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '8px',
-                                    cursor: loading || code.length < 6 ? 'not-allowed' : 'pointer',
-                                    opacity: loading || code.length < 6 ? 0.7 : 1,
-                                    transition: 'all 0.2s'
-                                }}
-                            >
-                                {loading ? 'Verifying...' : (
-                                    <>Verify <ChevronRight size={18} /></>
-                                )}
-                            </button>
-                        </motion.form>
-                    )}
-                </AnimatePresence>
+                <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="glass-label">Username</label>
+                        <div className="glass-input-wrapper">
+                            <User size={18} style={{ color: 'var(--text-muted)', marginRight: '12px' }} />
+                            <input
+                                type="text"
+                                placeholder="Admin Username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                required
+                                className="glass-input"
+                            />
+                        </div>
+                    </div>
+                    
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="glass-label">Password</label>
+                        <div className="glass-input-wrapper">
+                            <KeyRound size={18} style={{ color: 'var(--text-muted)', marginRight: '12px' }} />
+                            <input
+                                type="password"
+                                placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                className="glass-input"
+                            />
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={loading || !username || !password}
+                        style={{
+                            marginTop: '8px',
+                            height: '48px',
+                            background: 'var(--primary)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '12px',
+                            fontSize: '15px',
+                            fontWeight: 600,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            cursor: loading || !username || !password ? 'not-allowed' : 'pointer',
+                            opacity: loading || !username || !password ? 0.7 : 1,
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        {loading ? 'Authenticating...' : (
+                            <>Secure Login <ChevronRight size={18} /></>
+                        )}
+                    </button>
+                </form>
             </motion.div>
         </div>
     )

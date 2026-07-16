@@ -1,12 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom'
-import { useAuthActions } from "@convex-dev/auth/react"
 import { LayoutDashboard, UserPlus, FileText, CalendarDays,
     LogOut, Search, Bell, Menu, X, Activity
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useQuery, useMutation } from "convex/react"
-import { api } from "../../convex/_generated/api"
 import logo from '../assets/logo.png'
 
 export default function AdminLayout() {
@@ -15,11 +12,6 @@ export default function AdminLayout() {
     const [searchTerm, setSearchTerm] = useState('')
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
     const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 768)
-    const viewer = useQuery(api.users.viewer)
-    const updateName = useMutation(api.users.updateName)
-    const [nameInput, setNameInput] = useState('')
-    const [submittingName, setSubmittingName] = useState(false)
-
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 768)
         window.addEventListener('resize', handleResize)
@@ -32,10 +24,8 @@ export default function AdminLayout() {
         }
     }, [location.pathname, isMobile])
 
-    const { signOut } = useAuthActions()
-
-    const handleLogout = async () => {
-        await signOut()
+    const handleLogout = () => {
+        localStorage.removeItem('admin_auth')
         navigate('/login')
     }
 
@@ -267,11 +257,6 @@ export default function AdminLayout() {
                         )}
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            {viewer?.name && !isMobile && (
-                                <span style={{ color: 'var(--text-secondary)', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    Welcome, <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{viewer.name}</span>
-                                </span>
-                            )}
                             <div className="btn-icon" style={{ borderRadius: '50%' }}>
                                 <Bell size={18} />
                             </div>
@@ -285,82 +270,6 @@ export default function AdminLayout() {
                 </div>
 
             </main>
-
-            {/* ─── ONBOARDING MODAL ─── */}
-            <AnimatePresence>
-                {viewer !== undefined && viewer !== null && !viewer.name && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        style={{
-                            position: 'fixed',
-                            inset: 0,
-                            background: 'rgba(0,0,0,0.8)',
-                            backdropFilter: 'blur(8px)',
-                            zIndex: 100,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            padding: '24px'
-                        }}
-                    >
-                        <motion.div
-                            initial={{ scale: 0.95 }}
-                            animate={{ scale: 1 }}
-                            style={{
-                                background: 'var(--bg-surface)',
-                                padding: '32px',
-                                borderRadius: '24px',
-                                width: '100%',
-                                maxWidth: '400px',
-                                border: '1px solid var(--border)'
-                            }}
-                        >
-                            <h2 style={{ fontSize: '24px', marginBottom: '8px', color: 'var(--text-primary)' }}>Welcome to USM Admin</h2>
-                            <p style={{ color: 'var(--text-secondary)', marginBottom: '24px', fontSize: '14px' }}>
-                                Please enter your name to continue to the dashboard.
-                            </p>
-                            <form onSubmit={async (e) => {
-                                e.preventDefault()
-                                if (!nameInput.trim()) return
-                                setSubmittingName(true)
-                                try {
-                                    await updateName({ name: nameInput.trim() })
-                                } finally {
-                                    setSubmittingName(false)
-                                }
-                            }}>
-                                <input
-                                    type="text"
-                                    placeholder="Your Name"
-                                    value={nameInput}
-                                    onChange={(e) => setNameInput(e.target.value)}
-                                    className="glass-input"
-                                    style={{ marginBottom: '16px', width: '100%', padding: '12px', background: 'var(--bg-base)', color: 'var(--text-primary)', border: '1px solid var(--border)', borderRadius: '12px' }}
-                                    required
-                                />
-                                <button
-                                    type="submit"
-                                    disabled={submittingName || !nameInput.trim()}
-                                    style={{
-                                        width: '100%',
-                                        height: '44px',
-                                        background: 'var(--primary)',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '12px',
-                                        fontWeight: 600,
-                                        cursor: submittingName || !nameInput.trim() ? 'not-allowed' : 'pointer',
-                                        opacity: submittingName || !nameInput.trim() ? 0.7 : 1
-                                    }}
-                                >
-                                    {submittingName ? 'Saving...' : 'Continue'}
-                                </button>
-                            </form>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </div>
     )
 }

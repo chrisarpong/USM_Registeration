@@ -20,7 +20,6 @@ import type * as http from "../http.js";
 import type * as importData from "../importData.js";
 import type * as sendEmail from "../sendEmail.js";
 import type * as storage from "../storage.js";
-import type * as users from "../users.js";
 
 import type {
   ApiFromModules,
@@ -41,7 +40,6 @@ declare const fullApi: ApiFromModules<{
   importData: typeof importData;
   sendEmail: typeof sendEmail;
   storage: typeof storage;
-  users: typeof users;
 }>;
 
 /**

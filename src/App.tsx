@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
-import { useConvexAuth } from "convex/react"
 import Registration from './Component/Registration'
 import SuccessPage from './Component/SuccessPage'
 import AdminLogin from './Component/AdminLogin'
@@ -14,9 +13,8 @@ import AdminLogs from './Component/AdminLogs'
 
 // Protected Route Component
 const ProtectedRoute = () => {
-  const { isLoading, isAuthenticated } = useConvexAuth();
+  const isAuthenticated = localStorage.getItem('admin_auth') === 'true';
 
-  if (isLoading) return null
   if (!isAuthenticated) return <Navigate to="/login" replace />
 
   return <Outlet />
